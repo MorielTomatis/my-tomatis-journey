@@ -70,6 +70,7 @@ const PractitionerDashboard = () => {
   const { toast } = useToast();
   const [children, setChildren] = useState<ChildWithStats[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("active");
 
