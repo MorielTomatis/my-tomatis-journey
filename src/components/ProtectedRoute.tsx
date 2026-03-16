@@ -7,7 +7,18 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, allowedRole }: ProtectedRouteProps) => {
-  const { user, role, loading } = useAuth();
+  const { user, role, loading, error } = useAuth();
+
+  if (error) {
+    return (
+      <main className="min-h-svh flex items-center justify-center bg-background px-4">
+        <div className="w-full max-w-xl rounded-xl border border-destructive/20 bg-card p-4 text-center shadow-soft">
+          <p className="font-bold text-destructive">שגיאת אימות</p>
+          <p className="mt-2 break-words text-sm text-destructive">{error}</p>
+        </div>
+      </main>
+    );
+  }
 
   if (loading) {
     return (
@@ -22,7 +33,6 @@ const ProtectedRoute = ({ children, allowedRole }: ProtectedRouteProps) => {
   }
 
   if (allowedRole && role !== allowedRole) {
-    // Wrong role — redirect to correct dashboard
     if (role === "practitioner") return <Navigate to="/practitioner" replace />;
     if (role === "parent") return <Navigate to="/" replace />;
     return <Navigate to="/login" replace />;
