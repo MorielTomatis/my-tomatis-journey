@@ -105,6 +105,7 @@ const PractitionerDashboard = () => {
   const today = new Date().toISOString().split("T")[0];
 
   const fetchChildren = useCallback(async () => {
+    setLoading(true);
     setLoadError(null);
 
     try {
@@ -153,7 +154,7 @@ const PractitionerDashboard = () => {
 
       setChildren(enriched);
     } catch (err: any) {
-      const rawMessage = err?.message || err?.details || "Unknown error";
+      const rawMessage = err?.message || err?.details || String(err);
       console.error("fetchChildren error:", err);
       setLoadError(rawMessage);
       toast({ title: rawMessage, variant: "destructive" });
