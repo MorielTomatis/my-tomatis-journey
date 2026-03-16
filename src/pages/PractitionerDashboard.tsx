@@ -199,7 +199,7 @@ const PractitionerDashboard = () => {
       });
 
       if (lookupError || !lookupData) {
-        toast({ title: "לא נמצא הורה עם אימייל זה. וודאו שההורה נרשם למערכת.", variant: "destructive" });
+        toast({ title: "המייל לא קיים במערכת. על ההורה להירשם תחילה.", variant: "destructive" });
         setAddSubmitting(false);
         return;
       }
@@ -285,14 +285,14 @@ const PractitionerDashboard = () => {
 
   if (loading) {
     return (
-      <main className="max-w-4xl mx-auto min-h-svh flex items-center justify-center">
+      <main className="max-w-md mx-auto min-h-svh flex items-center justify-center px-4">
         <p className="text-muted-foreground">טוען...</p>
       </main>
     );
   }
 
   return (
-    <main className="max-w-4xl mx-auto min-h-svh flex flex-col p-5">
+    <main className="max-w-md mx-auto min-h-svh flex flex-col p-4">
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6 flex-1 flex flex-col">
         {/* Header */}
         <motion.header variants={item} className="py-4 flex items-center justify-between">
@@ -337,7 +337,7 @@ const PractitionerDashboard = () => {
               <p className="text-lg">אין מטופלים להצגה</p>
             </motion.div>
           ) : (
-            <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+            <motion.div variants={container} initial="hidden" animate="show" className="flex flex-col gap-4 pb-4 w-full">
               {filtered.map((child) => {
                 const status = getStatus(child);
                 return (
