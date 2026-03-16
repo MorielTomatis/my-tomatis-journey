@@ -105,6 +105,8 @@ const PractitionerDashboard = () => {
   const today = new Date().toISOString().split("T")[0];
 
   const fetchChildren = useCallback(async () => {
+    setLoadError(null);
+
     try {
       const { data: allChildren, error } = await supabase
         .from("children")
@@ -112,20 +114,26 @@ const PractitionerDashboard = () => {
         .order("first_name");
 
       if (error) throw error;
-      if (!allChildren) { setChildren([]); setLoading(false); return; }
+      if (!allChildren) {
+        setChildren([]);
+        return;
+      }
 
-      // Get all unarchived sessions for these children
       const childIds = allChildren.map((c) => c.id);
-      const { data: sessions } = await supabase
-        .from("sessions")
-        .select("child_id, date, passive_completed, is_archived")
-        .in("child_id", childIds)
-        .eq("is_archived", false);
+      const { data: sessions, error: sessionsError } = childIds.length
+        ? await supabase
+            .from("sessions")
+            .select("child_id, date, passive_completed, is_archived")
+            .in("child_id", childIds)
+            .eq("is_archived", false)
+        : { data: [], error: null };
+
+      if (sessionsError) throw sessionsError;
 
       const enriched: ChildWithStats[] = allChildren.map((c) => {
         const childSessions = sessions?.filter((s) => s.child_id === c.id) ?? [];
         const passiveSessions = childSessions.filter((s) => s.passive_completed);
-        const lastSession = childSessions.sort((a, b) => b.date.localeCompare(a.date))[0];
+        const lastSession = [...childSessions].sort((a, b) => b.date.localeCompare(a.date))[0];
         const loggedToday = childSessions.some((s) => s.date === today);
 
         return {
@@ -145,8 +153,10 @@ const PractitionerDashboard = () => {
 
       setChildren(enriched);
     } catch (err: any) {
+      const rawMessage = err?.message || err?.details || "Unknown error";
       console.error("fetchChildren error:", err);
-      toast({ title: `שגיאה: ${err?.message || "שגיאה בטעינת נתונים"}`, variant: "destructive" });
+      setLoadError(rawMessage);
+      toast({ title: rawMessage, variant: "destructive" });
     } finally {
       setLoading(false);
     }
