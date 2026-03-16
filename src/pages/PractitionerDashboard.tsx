@@ -143,8 +143,9 @@ const PractitionerDashboard = () => {
       });
 
       setChildren(enriched);
-    } catch {
-      toast({ title: "שגיאה בטעינת נתונים", variant: "destructive" });
+    } catch (err: any) {
+      console.error("fetchChildren error:", err);
+      toast({ title: `שגיאה: ${err?.message || "שגיאה בטעינת נתונים"}`, variant: "destructive" });
     } finally {
       setLoading(false);
     }
