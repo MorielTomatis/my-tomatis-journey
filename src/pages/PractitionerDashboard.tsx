@@ -337,7 +337,7 @@ const PractitionerDashboard = () => {
               <p className="text-lg">אין מטופלים להצגה</p>
             </motion.div>
           ) : (
-            <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+            <motion.div variants={container} initial="hidden" animate="show" className="flex flex-col gap-4 pb-4 w-full">
               {filtered.map((child) => {
                 const status = getStatus(child);
                 return (
