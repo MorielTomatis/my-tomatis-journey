@@ -45,6 +45,7 @@ const ParentView = () => {
   const [weekDays, setWeekDays] = useState<{ label: string; status: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [phaseDayNumber, setPhaseDayNumber] = useState(1);
 
   // Form state
   const [listeningDone, setListeningDone] = useState(false);
@@ -80,6 +81,16 @@ const ParentView = () => {
         .limit(1);
 
       setTodayLogged(!!todaySession?.length);
+
+      // Calculate day number = unarchived passive sessions + 1 (capped at 14)
+      const { count: unarchivedCount } = await supabase
+        .from("sessions")
+        .select("id", { count: "exact", head: true })
+        .eq("child_id", c.id)
+        .eq("passive_completed", true)
+        .eq("is_archived", false);
+
+      setPhaseDayNumber(Math.min((unarchivedCount ?? 0) + 1, 14));
 
       // Build week view — get sessions for the last 5 days
       const dayLabels = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳"];
@@ -157,7 +168,6 @@ const ParentView = () => {
   // Compute derived values
   const phaseConfig = child ? PHASE_LABELS[child.current_phase] : null;
   const requiresMic = phaseConfig?.type === "listening_and_mic";
-  const dayNumber = child ? Math.max(1, Math.floor((new Date().getTime() - new Date(child.start_date).getTime()) / 86400000) + 1) : 0;
 
   if (loading) {
     return (
@@ -190,7 +200,7 @@ const ParentView = () => {
         <motion.header variants={item} className="py-4 space-y-3">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-primary">
-              {child.first_name} · מסע טומטיס · יום {dayNumber}
+              {child.first_name} · מסע טומטיס · יום {phaseDayNumber}
             </h1>
             <button onClick={signOut} className="text-muted-foreground hover:text-foreground transition-colors" title="התנתק">
               <LogOut className="h-5 w-5" />
