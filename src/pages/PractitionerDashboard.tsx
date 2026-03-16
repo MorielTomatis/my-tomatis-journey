@@ -292,7 +292,7 @@ const PractitionerDashboard = () => {
   }
 
   return (
-    <main className="max-w-4xl mx-auto min-h-svh flex flex-col p-5">
+    <main className="max-w-md mx-auto min-h-svh flex flex-col p-4">
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6 flex-1 flex flex-col">
         {/* Header */}
         <motion.header variants={item} className="py-4 flex items-center justify-between">
