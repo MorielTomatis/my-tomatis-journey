@@ -168,7 +168,6 @@ const ParentView = () => {
   // Compute derived values
   const phaseConfig = child ? PHASE_LABELS[child.current_phase] : null;
   const requiresMic = phaseConfig?.type === "listening_and_mic";
-  const dayNumber = child ? Math.max(1, Math.floor((new Date().getTime() - new Date(child.start_date).getTime()) / 86400000) + 1) : 0;
 
   if (loading) {
     return (
