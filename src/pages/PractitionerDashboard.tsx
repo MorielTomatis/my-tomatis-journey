@@ -177,43 +177,14 @@ const PractitionerDashboard = () => {
     }
     setAddSubmitting(true);
     try {
-      // Look up parent by email using a simple approach: 
-      // We need the parent's user ID. Since we can't query auth.users directly,
-      // we'll store the parent_email and the practitioner will need to ensure
-      // the parent has signed up. For now, we create with a placeholder approach.
-      // Actually, we'll use Supabase admin to invite the user or look them up.
-      // Simpler: use supabase.auth.admin is not available client-side.
-      // Best approach: use an edge function. For MVP, let's require parent_id directly
-      // or use the email to find them via a DB function.
-      
-      // For now, let's look up the user via edge function or just store.
-      // Simplest MVP: call an RPC or just note that parent must exist.
-      // We'll create the child referencing a lookup - but auth.users isn't queryable.
-      // Let's use a pragmatic approach: the practitioner enters parent email,
-      // we'll try to find them via a simple edge function approach.
-      
-      // For MVP: we'll just insert and let the practitioner know if it fails
-      // We need the parent user ID - let's use a server function
-      const { data: lookupData, error: lookupError } = await supabase.rpc("get_user_id_by_email" as any, {
-        _email: addForm.parent_email,
-      });
-
-      if (lookupError || !lookupData) {
-        toast({ title: "המייל לא קיים במערכת. על ההורה להירשם תחילה.", variant: "destructive" });
-        setAddSubmitting(false);
-        return;
-      }
-
-      const parentId = lookupData as string;
-
       const { error } = await supabase.from("children").insert({
         first_name: addForm.first_name,
         last_name: addForm.last_name,
-        parent_id: parentId,
+        parent_email: addForm.parent_email,
         start_date: addForm.start_date,
         passive_duration: addForm.passive_duration,
         current_phase: addForm.starting_phase,
-      });
+      } as any);
 
       if (error) throw error;
 
