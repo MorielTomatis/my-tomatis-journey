@@ -43,6 +43,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (session?.user) {
           const userRole = await fetchRole(session.user.id);
           setRole(userRole);
+
+          // Auto-link children by parent_email on login/signup
+          if (userRole === "parent") {
+            await supabase.rpc("link_my_children" as any);
+          }
         } else {
           setRole(null);
         }
@@ -56,6 +61,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (session?.user) {
         const userRole = await fetchRole(session.user.id);
         setRole(userRole);
+
+        if (userRole === "parent") {
+          await supabase.rpc("link_my_children" as any);
+        }
       }
       setLoading(false);
     });
