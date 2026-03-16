@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 
 const days = [
@@ -27,7 +28,29 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } },
 };
 
+// Phase config — determines which UI to show
+type PhaseType = "listening_only" | "listening_and_mic";
+
+interface PhaseConfig {
+  label: string;
+  number: number;
+  type: PhaseType;
+}
+
+// Current phase (will be driven by DB later)
+const currentPhase: PhaseConfig = {
+  label: "שלב אינטנסיבי",
+  number: 1,
+  type: "listening_only", // Change to "listening_and_mic" for סדרות 2 & 3
+};
+
 const ParentView = () => {
+  const [listeningDone, setListeningDone] = useState(false);
+  const [micDone, setMicDone] = useState(false);
+  const [micMinutes, setMicMinutes] = useState<number | "">("");
+
+  const requiresMic = currentPhase.type === "listening_and_mic";
+
   return (
     <main className="max-w-md mx-auto min-h-svh flex flex-col p-5">
       <motion.div
@@ -41,7 +64,7 @@ const ParentView = () => {
           <h1 className="text-2xl font-bold text-primary">איתי · מסע טומטיס · יום 18</h1>
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 bg-accent text-accent-foreground px-4 py-1.5 rounded-full text-sm font-bold shadow-sm">
-              שלב 1 מתוך 6 · שלב אינטנסיבי
+              שלב {currentPhase.number} מתוך 6 · {currentPhase.label}
             </span>
           </div>
         </motion.header>
@@ -91,15 +114,62 @@ const ParentView = () => {
           </div>
         </motion.div>
 
-        {/* CTA */}
-        <motion.div variants={item}>
+        {/* Logging Actions */}
+        <motion.div variants={item} className="space-y-3">
+          {/* Mic encouragement text — only for mic phases */}
+          {requiresMic && (
+            <p className="text-sm text-center text-muted-foreground leading-relaxed px-2">
+              עבודה עם המיקרופון היא הלב של התהליך. אפילו חמש דקות ביום עושות הבדל גדול.
+            </p>
+          )}
+
+          {/* Listening button */}
           <motion.button
             whileTap={{ scale: 0.98 }}
             transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full bg-primary text-primary-foreground py-4 rounded-xl font-bold text-lg shadow-soft"
+            onClick={() => setListeningDone(!listeningDone)}
+            className={`w-full py-4 rounded-xl font-bold text-lg shadow-soft transition-colors ${
+              listeningDone
+                ? "bg-accent text-accent-foreground"
+                : "bg-primary text-primary-foreground"
+            }`}
           >
-            עדכון יומי חדש ✏️
+            האזנה הושלמה {listeningDone ? "✓" : ""}
           </motion.button>
+
+          {/* Mic section — only for phases requiring mic work */}
+          {requiresMic && (
+            <>
+              <motion.button
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                onClick={() => setMicDone(!micDone)}
+                className={`w-full py-4 rounded-xl font-bold text-base shadow-soft transition-colors ${
+                  micDone
+                    ? "bg-accent text-accent-foreground"
+                    : "bg-primary text-primary-foreground"
+                }`}
+              >
+                עבודה פעילה עם המיקרופון הושלמה {micDone ? "✓" : ""}
+              </motion.button>
+
+              <div className="flex items-center gap-3 bg-card p-3 rounded-xl shadow-soft">
+                <label htmlFor="mic-minutes" className="text-sm font-bold text-foreground whitespace-nowrap">
+                  כמה דקות?
+                </label>
+                <input
+                  id="mic-minutes"
+                  type="number"
+                  min={0}
+                  max={120}
+                  value={micMinutes}
+                  onChange={(e) => setMicMinutes(e.target.value === "" ? "" : Number(e.target.value))}
+                  placeholder="0"
+                  className="w-20 text-center bg-background border border-border rounded-lg py-2 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+              </div>
+            </>
+          )}
         </motion.div>
       </motion.div>
 
