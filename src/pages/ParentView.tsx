@@ -38,6 +38,7 @@ interface ChildData {
 }
 
 const ParentView = () => {
+  const { signOut } = useAuth();
   const { toast } = useToast();
   const [child, setChild] = useState<ChildData | null>(null);
   const [todayLogged, setTodayLogged] = useState(false);

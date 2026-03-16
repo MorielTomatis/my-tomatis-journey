@@ -66,6 +66,7 @@ const item = {
 };
 
 const PractitionerDashboard = () => {
+  const { signOut } = useAuth();
   const { toast } = useToast();
   const [children, setChildren] = useState<ChildWithStats[]>([]);
   const [loading, setLoading] = useState(true);
