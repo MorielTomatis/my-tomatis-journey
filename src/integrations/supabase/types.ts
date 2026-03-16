@@ -21,6 +21,7 @@ export type Database = {
           current_phase: number
           first_name: string
           id: string
+          is_active: boolean
           last_name: string
           parent_id: string
           passive_duration: number
@@ -33,6 +34,7 @@ export type Database = {
           current_phase?: number
           first_name: string
           id?: string
+          is_active?: boolean
           last_name: string
           parent_id: string
           passive_duration?: number
@@ -45,6 +47,7 @@ export type Database = {
           current_phase?: number
           first_name?: string
           id?: string
+          is_active?: boolean
           last_name?: string
           parent_id?: string
           passive_duration?: number
@@ -61,6 +64,7 @@ export type Database = {
           created_at: string
           date: string
           id: string
+          is_archived: boolean
           passive_completed: boolean
         }
         Insert: {
@@ -70,6 +74,7 @@ export type Database = {
           created_at?: string
           date?: string
           id?: string
+          is_archived?: boolean
           passive_completed?: boolean
         }
         Update: {
@@ -79,6 +84,7 @@ export type Database = {
           created_at?: string
           date?: string
           id?: string
+          is_archived?: boolean
           passive_completed?: boolean
         }
         Relationships: [
