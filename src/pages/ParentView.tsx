@@ -82,6 +82,16 @@ const ParentView = () => {
 
       setTodayLogged(!!todaySession?.length);
 
+      // Calculate day number = unarchived passive sessions + 1 (capped at 14)
+      const { count: unarchivedCount } = await supabase
+        .from("sessions")
+        .select("id", { count: "exact", head: true })
+        .eq("child_id", c.id)
+        .eq("passive_completed", true)
+        .eq("is_archived", false);
+
+      setPhaseDayNumber(Math.min((unarchivedCount ?? 0) + 1, 14));
+
       // Build week view — get sessions for the last 5 days
       const dayLabels = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳"];
       const now = new Date();
