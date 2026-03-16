@@ -299,10 +299,15 @@ const PractitionerDashboard = () => {
             <h1 className="text-2xl font-bold text-primary">שלום, מוריאל</h1>
             <p className="text-muted-foreground text-sm">לוח בקרה · {children.filter(c => c.is_active).length} מטופלים פעילים</p>
           </div>
-          <Button onClick={() => setAddOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            הוספת מטופל חדש
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setAddOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              הוספת מטופל חדש
+            </Button>
+            <Button variant="ghost" size="icon" onClick={signOut} title="התנתק">
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
         </motion.header>
 
         {/* Tabs + Search */}
