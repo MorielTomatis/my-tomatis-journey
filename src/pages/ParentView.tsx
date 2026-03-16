@@ -45,6 +45,7 @@ const ParentView = () => {
   const [weekDays, setWeekDays] = useState<{ label: string; status: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [phaseDayNumber, setPhaseDayNumber] = useState(1);
 
   // Form state
   const [listeningDone, setListeningDone] = useState(false);
