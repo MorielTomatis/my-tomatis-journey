@@ -105,6 +105,7 @@ const PractitionerDashboard = () => {
   const today = new Date().toISOString().split("T")[0];
 
   const fetchChildren = useCallback(async () => {
+    setLoading(true);
     setLoadError(null);
 
     try {
@@ -153,7 +154,7 @@ const PractitionerDashboard = () => {
 
       setChildren(enriched);
     } catch (err: any) {
-      const rawMessage = err?.message || err?.details || "Unknown error";
+      const rawMessage = err?.message || err?.details || String(err);
       console.error("fetchChildren error:", err);
       setLoadError(rawMessage);
       toast({ title: rawMessage, variant: "destructive" });
@@ -268,24 +269,24 @@ const PractitionerDashboard = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <main className="max-w-md mx-auto min-h-svh flex items-center justify-center px-4">
-        <p className="text-muted-foreground">טוען...</p>
-      </main>
-    );
-  }
-
   if (loadError) {
     return (
       <main className="max-w-md mx-auto min-h-svh flex items-center justify-center px-4">
         <div className="w-full rounded-xl border border-destructive/20 bg-card p-4 text-center shadow-soft">
           <p className="font-bold text-destructive">שגיאת טעינה</p>
-          <p className="mt-2 text-sm text-foreground break-words">{loadError}</p>
-          <Button onClick={() => { setLoading(true); void fetchChildren(); }} className="mt-4 w-full">
+          <p className="mt-2 text-sm text-destructive break-words">{loadError}</p>
+          <Button onClick={() => void fetchChildren()} className="mt-4 w-full">
             נסה שוב
           </Button>
         </div>
+      </main>
+    );
+  }
+
+  if (loading) {
+    return (
+      <main className="max-w-md mx-auto min-h-svh flex items-center justify-center px-4">
+        <p className="text-muted-foreground">טוען...</p>
       </main>
     );
   }

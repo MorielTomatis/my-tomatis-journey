@@ -7,6 +7,7 @@ interface AuthContextType {
   session: Session | null;
   role: "parent" | "practitioner" | null;
   loading: boolean;
+  error: string | null;
   signOut: () => Promise<void>;
 }
 
@@ -15,6 +16,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   role: null,
   loading: true,
+  error: null,
   signOut: async () => {},
 });
 
@@ -23,53 +25,82 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<"parent" | "practitioner" | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchRole = async (userId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", userId)
       .limit(1)
       .single();
+
+    if (error) throw error;
     return (data?.role as "parent" | "practitioner") ?? null;
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+    let isMounted = true;
 
-        if (session?.user) {
-          const userRole = await fetchRole(session.user.id);
-          setRole(userRole);
+    const syncAuthState = async (nextSession: Session | null) => {
+      if (!isMounted) return;
 
-          // Auto-link children by parent_email on login/signup
-          if (userRole === "parent") {
-            await supabase.rpc("link_my_children" as any);
-          }
-        } else {
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
+
+      try {
+        if (!nextSession?.user) {
           setRole(null);
+          setError(null);
+          return;
         }
-        setLoading(false);
-      }
-    );
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        const userRole = await fetchRole(session.user.id);
+        const userRole = await fetchRole(nextSession.user.id);
+        if (!isMounted) return;
+
         setRole(userRole);
+        setError(null);
 
         if (userRole === "parent") {
-          await supabase.rpc("link_my_children" as any);
+          const { error: linkError } = await supabase.rpc("link_my_children" as any);
+          if (linkError) throw linkError;
+        }
+      } catch (err: any) {
+        console.error("Auth initialization error:", err);
+        if (!isMounted) return;
+        setRole(null);
+        setError(err?.message || err?.details || String(err));
+      } finally {
+        if (isMounted) {
+          setLoading(false);
         }
       }
-      setLoading(false);
+    };
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (isMounted) {
+        setLoading(true);
+      }
+      void syncAuthState(nextSession);
     });
 
-    return () => subscription.unsubscribe();
+    void supabase.auth
+      .getSession()
+      .then(({ data: { session: initialSession } }) => syncAuthState(initialSession))
+      .catch((err: any) => {
+        console.error("getSession error:", err);
+        if (!isMounted) return;
+        setError(err?.message || err?.details || String(err));
+        setRole(null);
+        setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
@@ -77,10 +108,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setSession(null);
     setRole(null);
+    setError(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, role, loading, signOut }}>
+    <AuthContext.Provider value={{ user, session, role, loading, error, signOut }}>
       {children}
     </AuthContext.Provider>
   );
