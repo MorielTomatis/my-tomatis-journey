@@ -276,6 +276,20 @@ const PractitionerDashboard = () => {
     );
   }
 
+  if (loadError) {
+    return (
+      <main className="max-w-md mx-auto min-h-svh flex items-center justify-center px-4">
+        <div className="w-full rounded-xl border border-destructive/20 bg-card p-4 text-center shadow-soft">
+          <p className="font-bold text-destructive">שגיאת טעינה</p>
+          <p className="mt-2 text-sm text-foreground break-words">{loadError}</p>
+          <Button onClick={() => { setLoading(true); void fetchChildren(); }} className="mt-4 w-full">
+            נסה שוב
+          </Button>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="max-w-md mx-auto min-h-svh flex flex-col p-4">
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6 flex-1 flex flex-col">
