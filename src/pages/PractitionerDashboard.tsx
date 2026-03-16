@@ -184,10 +184,12 @@ const PractitionerDashboard = () => {
         start_date: addForm.start_date,
         passive_duration: addForm.passive_duration,
         current_phase: addForm.starting_phase,
-      } as any);
+      });
 
-      if (error) throw error;
-
+      if (error) {
+        console.error("Insert error:", error);
+        throw error;
+      }
       toast({ title: "מטופל נוסף בהצלחה ✓" });
       setAddOpen(false);
       setAddForm({
@@ -199,8 +201,8 @@ const PractitionerDashboard = () => {
         starting_phase: 1,
       });
       await fetchChildren();
-    } catch {
-      toast({ title: "שגיאה בהוספת מטופל", variant: "destructive" });
+    } catch (err: any) {
+      toast({ title: `שגיאה: ${err?.message || "שגיאה בהוספת מטופל"}`, variant: "destructive" });
     } finally {
       setAddSubmitting(false);
     }
