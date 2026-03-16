@@ -237,7 +237,7 @@ const ParentView = () => {
                   listeningDone ? "bg-accent text-accent-foreground" : "bg-primary text-primary-foreground"
                 }`}
               >
-                האזנה הושלמה {listeningDone ? "✓" : ""}
+                האזנה פסיבית הושלמה {listeningDone ? "✓" : ""}
               </motion.button>
 
               {requiresMic && (
