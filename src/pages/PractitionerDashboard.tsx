@@ -401,7 +401,7 @@ const PractitionerDashboard = () => {
                       </span>
                       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                         <Headphones className="h-3.5 w-3.5" />
-                        <span>האזנה {child.sessionCount} מתוך 14</span>
+                        <span>יום {child.sessionCount} מתוך 14</span>
                       </div>
                     </div>
 
@@ -447,7 +447,7 @@ const PractitionerDashboard = () => {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-sm font-bold">משך האזנה (דקות)</label>
+                <label className="text-sm font-bold">משך האזנה פסיבית (דקות)</label>
                 <select
                   value={addForm.passive_duration}
                   onChange={(e) => setAddForm({ ...addForm, passive_duration: Number(e.target.value) })}
@@ -499,7 +499,7 @@ const PractitionerDashboard = () => {
                 className="h-5 w-5 rounded border-border accent-accent"
               />
               <span className="text-sm font-bold flex items-center gap-1.5">
-                <Headphones className="h-4 w-4" /> האזנה הושלמה
+                <Headphones className="h-4 w-4" /> האזנה פסיבית הושלמה
               </span>
             </label>
             <label className="flex items-center gap-3 cursor-pointer">
