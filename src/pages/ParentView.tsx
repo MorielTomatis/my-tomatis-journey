@@ -37,9 +37,13 @@ const ParentView = () => {
         className="space-y-6 flex-1"
       >
         {/* Header */}
-        <motion.header variants={item} className="py-4">
-          <h1 className="text-2xl font-bold text-primary">היי, מיכל 👋</h1>
-          <p className="text-muted-foreground">מה שלום איתי היום?</p>
+        <motion.header variants={item} className="py-4 space-y-3">
+          <h1 className="text-2xl font-bold text-primary">איתי · מסע טומטיס · יום 18</h1>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 bg-accent text-accent-foreground px-4 py-1.5 rounded-full text-sm font-bold shadow-sm">
+              שלב 1 מתוך 6 · שלב אינטנסיבי
+            </span>
+          </div>
         </motion.header>
 
         {/* Progress Card */}
