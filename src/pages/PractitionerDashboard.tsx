@@ -285,7 +285,7 @@ const PractitionerDashboard = () => {
 
   if (loading) {
     return (
-      <main className="max-w-4xl mx-auto min-h-svh flex items-center justify-center">
+      <main className="max-w-md mx-auto min-h-svh flex items-center justify-center px-4">
         <p className="text-muted-foreground">טוען...</p>
       </main>
     );
