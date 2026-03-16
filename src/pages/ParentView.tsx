@@ -200,7 +200,7 @@ const ParentView = () => {
         <motion.header variants={item} className="py-4 space-y-3">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-primary">
-              {child.first_name} · מסע טומטיס · יום {dayNumber}
+              {child.first_name} · מסע טומטיס · יום {phaseDayNumber}
             </h1>
             <button onClick={signOut} className="text-muted-foreground hover:text-foreground transition-colors" title="התנתק">
               <LogOut className="h-5 w-5" />
