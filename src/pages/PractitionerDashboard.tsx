@@ -401,7 +401,7 @@ const PractitionerDashboard = () => {
                       </span>
                       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                         <Headphones className="h-3.5 w-3.5" />
-                        <span>האזנה {child.sessionCount} מתוך 14</span>
+                        <span>יום {child.sessionCount} מתוך 14</span>
                       </div>
                     </div>
 
