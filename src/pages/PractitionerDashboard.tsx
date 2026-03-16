@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -29,7 +30,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, Plus, MoreVertical, Calendar, Mic, Headphones } from "lucide-react";
+import { Search, Plus, MoreVertical, Calendar, Mic, Headphones, LogOut } from "lucide-react";
 
 const PHASE_NAMES: Record<number, string> = {
   1: "אינטנסיבי 1",
@@ -65,6 +66,7 @@ const item = {
 };
 
 const PractitionerDashboard = () => {
+  const { signOut } = useAuth();
   const { toast } = useToast();
   const [children, setChildren] = useState<ChildWithStats[]>([]);
   const [loading, setLoading] = useState(true);
@@ -298,10 +300,15 @@ const PractitionerDashboard = () => {
             <h1 className="text-2xl font-bold text-primary">שלום, מוריאל</h1>
             <p className="text-muted-foreground text-sm">לוח בקרה · {children.filter(c => c.is_active).length} מטופלים פעילים</p>
           </div>
-          <Button onClick={() => setAddOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            הוספת מטופל חדש
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setAddOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              הוספת מטופל חדש
+            </Button>
+            <Button variant="ghost" size="icon" onClick={signOut} title="התנתק">
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
         </motion.header>
 
         {/* Tabs + Search */}

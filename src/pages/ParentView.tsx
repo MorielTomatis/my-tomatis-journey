@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { LogOut } from "lucide-react";
 
 const PHASE_LABELS: Record<number, { label: string; type: "listening_only" | "listening_and_mic" }> = {
   1: { label: "שלב אינטנסיבי", type: "listening_only" },
@@ -36,6 +38,7 @@ interface ChildData {
 }
 
 const ParentView = () => {
+  const { signOut } = useAuth();
   const { toast } = useToast();
   const [child, setChild] = useState<ChildData | null>(null);
   const [todayLogged, setTodayLogged] = useState(false);
@@ -185,9 +188,14 @@ const ParentView = () => {
       >
         {/* Header */}
         <motion.header variants={item} className="py-4 space-y-3">
-          <h1 className="text-2xl font-bold text-primary">
-            {child.first_name} · מסע טומטיס · יום {dayNumber}
-          </h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-primary">
+              {child.first_name} · מסע טומטיס · יום {dayNumber}
+            </h1>
+            <button onClick={signOut} className="text-muted-foreground hover:text-foreground transition-colors" title="התנתק">
+              <LogOut className="h-5 w-5" />
+            </button>
+          </div>
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 bg-accent text-accent-foreground px-4 py-1.5 rounded-full text-sm font-bold shadow-sm">
               שלב {child.current_phase} מתוך 6 · {phaseConfig?.label}
