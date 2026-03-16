@@ -199,7 +199,7 @@ const PractitionerDashboard = () => {
       });
 
       if (lookupError || !lookupData) {
-        toast({ title: "לא נמצא הורה עם אימייל זה. וודאו שההורה נרשם למערכת.", variant: "destructive" });
+        toast({ title: "המייל לא קיים במערכת. על ההורה להירשם תחילה.", variant: "destructive" });
         setAddSubmitting(false);
         return;
       }
