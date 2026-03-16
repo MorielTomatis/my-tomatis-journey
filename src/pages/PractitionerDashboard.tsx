@@ -201,8 +201,8 @@ const PractitionerDashboard = () => {
         starting_phase: 1,
       });
       await fetchChildren();
-    } catch {
-      toast({ title: "שגיאה בהוספת מטופל", variant: "destructive" });
+    } catch (err: any) {
+      toast({ title: `שגיאה: ${err?.message || "שגיאה בהוספת מטופל"}`, variant: "destructive" });
     } finally {
       setAddSubmitting(false);
     }
