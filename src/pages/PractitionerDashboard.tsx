@@ -447,7 +447,7 @@ const PractitionerDashboard = () => {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-sm font-bold">משך האזנה (דקות)</label>
+                <label className="text-sm font-bold">משך האזנה פסיבית (דקות)</label>
                 <select
                   value={addForm.passive_duration}
                   onChange={(e) => setAddForm({ ...addForm, passive_duration: Number(e.target.value) })}
