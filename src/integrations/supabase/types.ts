@@ -23,7 +23,8 @@ export type Database = {
           id: string
           is_active: boolean
           last_name: string
-          parent_id: string
+          parent_email: string | null
+          parent_id: string | null
           passive_duration: number
           start_date: string
           updated_at: string
@@ -36,7 +37,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_name: string
-          parent_id: string
+          parent_email?: string | null
+          parent_id?: string | null
           passive_duration?: number
           start_date?: string
           updated_at?: string
@@ -49,7 +51,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_name?: string
-          parent_id?: string
+          parent_email?: string | null
+          parent_id?: string | null
           passive_duration?: number
           start_date?: string
           updated_at?: string
@@ -128,6 +131,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      link_my_children: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "parent" | "practitioner"
