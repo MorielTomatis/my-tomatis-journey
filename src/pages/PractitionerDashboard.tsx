@@ -184,10 +184,12 @@ const PractitionerDashboard = () => {
         start_date: addForm.start_date,
         passive_duration: addForm.passive_duration,
         current_phase: addForm.starting_phase,
-      } as any);
+      });
 
-      if (error) throw error;
-
+      if (error) {
+        console.error("Insert error:", error);
+        throw error;
+      }
       toast({ title: "מטופל נוסף בהצלחה ✓" });
       setAddOpen(false);
       setAddForm({
