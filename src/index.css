@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    --background: 216 25% 97%;
+    --background: 216 24% 96%;
     --foreground: 0 0% 20%;
 
     --card: 0 0% 100%;
@@ -24,18 +24,18 @@
     --muted: 210 25% 93%;
     --muted-foreground: 0 0% 45%;
 
-    --accent: 181 64% 47%;
+    --accent: 179 72% 47%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --status-logged: 181 64% 47%;
+    --status-logged: 179 72% 47%;
     --status-missed: 0 72% 51%;
-    --status-none: 210 22% 90%;
+    --status-none: 210 29% 90%;
 
-    --border: 210 22% 90%;
-    --input: 210 22% 90%;
+    --border: 210 29% 90%;
+    --input: 210 29% 90%;
     --ring: 222 65% 33%;
 
     --radius: 1rem;
