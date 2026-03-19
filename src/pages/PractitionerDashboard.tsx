@@ -400,6 +400,21 @@ const PractitionerDashboard = () => {
                         <DropdownMenuContent align="start">
                           <DropdownMenuItem
                             onClick={() => {
+                              setEditChild(child);
+                              setEditForm({
+                                first_name: child.first_name,
+                                last_name: child.last_name,
+                                parent_email: child.parent_email ?? "",
+                                profile_type: (child as any).profile_type ?? "child",
+                                icon: child.icon,
+                              });
+                              setEditOpen(true);
+                            }}
+                          >
+                            ✏️ <span className="mr-2">עריכה</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
                               setLogChild(child);
                               setLogForm({
                                 date: today,
@@ -418,10 +433,18 @@ const PractitionerDashboard = () => {
                               setResetChild(child);
                               setResetOpen(true);
                             }}
-                            className="text-destructive focus:text-destructive"
                           >
                             <span className="ml-2">🔄</span>
                             איפוס שלב
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setDeleteChild(child);
+                              setDeleteOpen(true);
+                            }}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            🗑️ <span className="mr-2">מחיקה</span>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
