@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Search, Plus, MoreVertical, Calendar, Mic, Headphones, LogOut, Rocket, Sun, Star, Shield } from "lucide-react";
 import FamilyCreatorDialog from "@/components/FamilyCreatorDialog";
+import AddMemberDialog from "@/components/AddMemberDialog";
 
 const PHASE_NAMES: Record<number, string> = {
   1: "אינטנסיבי 1",
