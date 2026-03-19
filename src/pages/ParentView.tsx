@@ -185,12 +185,88 @@ const ParentView = () => {
     );
   }
 
+  const handleOnboarding = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onboardingSubmitting) return;
+    setOnboardingSubmitting(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user");
+
+      const { error } = await supabase.from("children").insert({
+        first_name: onboardingName.first,
+        last_name: onboardingName.last,
+        user_id: user.id,
+        current_phase: 1,
+      });
+      if (error) throw error;
+
+      setNeedsOnboarding(false);
+      setLoading(true);
+      await fetchData();
+    } catch {
+      toast({ title: "שגיאה ביצירת פרופיל", variant: "destructive" });
+    } finally {
+      setOnboardingSubmitting(false);
+    }
+  };
+
+  if (!child && needsOnboarding) {
+    return (
+      <main className="max-w-md mx-auto min-h-svh flex items-center justify-center p-5" dir="rtl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full space-y-6"
+        >
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl font-bold text-primary">ברוכים הבאים למסע טומטיס</h1>
+            <p className="text-muted-foreground text-sm">בואו נתחיל! הזינו את פרטיכם</p>
+          </div>
+          <form onSubmit={handleOnboarding} className="bg-card p-6 rounded-xl shadow-soft space-y-4">
+            <div className="space-y-1.5">
+              <label htmlFor="first-name" className="text-sm font-bold text-foreground">שם פרטי</label>
+              <input
+                id="first-name"
+                type="text"
+                required
+                value={onboardingName.first}
+                onChange={(e) => setOnboardingName((p) => ({ ...p, first: e.target.value }))}
+                className="w-full bg-background border border-border rounded-lg py-2 px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="last-name" className="text-sm font-bold text-foreground">שם משפחה</label>
+              <input
+                id="last-name"
+                type="text"
+                required
+                value={onboardingName.last}
+                onChange={(e) => setOnboardingName((p) => ({ ...p, last: e.target.value }))}
+                className="w-full bg-background border border-border rounded-lg py-2 px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+            </div>
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              type="submit"
+              disabled={onboardingSubmitting}
+              className="w-full py-3 rounded-xl font-bold text-base bg-accent text-accent-foreground shadow-soft disabled:opacity-50"
+            >
+              {onboardingSubmitting ? "יוצר פרופיל..." : "התחלת המסע 🚀"}
+            </motion.button>
+          </form>
+        </motion.div>
+      </main>
+    );
+  }
+
   if (!child) {
     return (
       <main className="max-w-md mx-auto min-h-svh flex items-center justify-center p-5">
         <div className="text-center space-y-2">
-          <p className="text-lg font-bold text-foreground">אין ילד משויך לחשבון זה</p>
-          <p className="text-sm text-muted-foreground">פנה/י למטפל/ת להוספת ילדך למערכת</p>
+          <p className="text-lg font-bold text-foreground">אין פרופיל משויך לחשבון זה</p>
+          <p className="text-sm text-muted-foreground">פנה/י למטפל/ת להוספת פרטיך למערכת</p>
         </div>
       </main>
     );
