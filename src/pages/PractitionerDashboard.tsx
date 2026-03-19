@@ -184,44 +184,6 @@ const PractitionerDashboard = () => {
     return "pending";
   };
 
-  // Add client handler
-  const handleAddClient = async () => {
-    if (!addForm.first_name || !addForm.last_name) {
-      toast({ title: "נא למלא שם פרטי ושם משפחה", variant: "destructive" });
-      return;
-    }
-    setAddSubmitting(true);
-    try {
-      const { error } = await supabase.from("children").insert({
-        first_name: addForm.first_name,
-        last_name: addForm.last_name,
-        parent_email: addForm.parent_email || null,
-        start_date: addForm.start_date,
-        passive_duration: addForm.passive_duration,
-        current_phase: addForm.starting_phase,
-      });
-
-      if (error) {
-        console.error("Insert error:", error);
-        throw error;
-      }
-      toast({ title: "מטופל נוסף בהצלחה ✓" });
-      setAddOpen(false);
-      setAddForm({
-        first_name: "",
-        last_name: "",
-        parent_email: "",
-        start_date: new Date().toISOString().split("T")[0],
-        passive_duration: 40,
-        starting_phase: 1,
-      });
-      await fetchChildren();
-    } catch (err: any) {
-      toast({ title: `שגיאה: ${err?.message || "שגיאה בהוספת מטופל"}`, variant: "destructive" });
-    } finally {
-      setAddSubmitting(false);
-    }
-  };
 
   // Manual log handler
   const handleManualLog = async () => {
