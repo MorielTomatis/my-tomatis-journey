@@ -407,7 +407,7 @@ const PractitionerDashboard = () => {
                                 first_name: child.first_name,
                                 last_name: child.last_name,
                                 parent_email: child.parent_email ?? "",
-                                profile_type: (child as any).profile_type ?? "child",
+                                profile_type: child.profile_type ?? "child",
                                 icon: child.icon,
                               });
                               setEditOpen(true);
