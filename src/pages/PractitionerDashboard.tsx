@@ -197,7 +197,7 @@ const PractitionerDashboard = () => {
       const { error } = await supabase.from("children").insert({
         first_name: addForm.first_name,
         last_name: addForm.last_name,
-        parent_email: addForm.parent_email,
+        parent_email: addForm.parent_email || null,
         start_date: addForm.start_date,
         passive_duration: addForm.passive_duration,
         current_phase: addForm.starting_phase,
