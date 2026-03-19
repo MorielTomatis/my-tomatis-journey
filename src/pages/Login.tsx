@@ -14,6 +14,8 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [passwordError, setPasswordError] = useState("");
 
   // If already logged in, redirect
   if (!loading && user && role) {
@@ -25,16 +27,38 @@ const Login = () => {
     return null;
   }
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting) return;
+    setPasswordError("");
+
+    if (mode === "signup" && password.length < 6) {
+      setPasswordError("אנא ודאו שהסיסמה שלכם מכילה לפחות 6 תווים.");
+      return;
+    }
+
     setSubmitting(true);
 
     try {
+      if (mode === "signup") {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: window.location.origin },
+        });
+        if (error) throw error;
+
+        toast({
+          title: "ההרשמה הצליחה!",
+          description: "נשלח אליכם מייל לאימות. אנא בדקו את תיבת הדואר שלכם.",
+        });
+        return;
+      }
+
+      // Login mode
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
 
-      // Fetch role for redirect
       const { data: { user: loggedUser } } = await supabase.auth.getUser();
       if (!loggedUser) throw new Error("No user");
 
@@ -52,11 +76,16 @@ const Login = () => {
         navigate("/", { replace: true });
       }
     } catch (err: any) {
-      toast({
-        title: "שגיאה בהתחברות",
-        description: err?.message === "Invalid login credentials"
+      const description =
+        mode === "login" && err?.message === "Invalid login credentials"
           ? "אימייל או סיסמה שגויים"
-          : "אנא נסה שנית",
+          : err?.message === "User already registered"
+            ? "כתובת האימייל כבר רשומה במערכת"
+            : "אנא נסו שנית";
+
+      toast({
+        title: mode === "login" ? "שגיאה בהתחברות" : "שגיאה בהרשמה",
+        description,
         variant: "destructive",
       });
     } finally {
@@ -86,12 +115,38 @@ const Login = () => {
             ברוכים הבאים למסע טומטיס
           </h1>
           <p className="text-muted-foreground text-sm">
-            התחברו כדי להמשיך
+            {mode === "login" ? "התחברו כדי להמשיך" : "צרו חשבון חדש כדי להתחיל"}
           </p>
         </div>
 
-        {/* Login Form */}
-        <form onSubmit={handleLogin} className="bg-card p-6 rounded-xl shadow-soft space-y-4">
+        {/* Toggle */}
+        <div className="flex rounded-lg bg-muted p-1">
+          <button
+            type="button"
+            onClick={() => { setMode("login"); setPasswordError(""); }}
+            className={`flex-1 rounded-md py-2 text-sm font-bold transition-colors ${
+              mode === "login"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground"
+            }`}
+          >
+            התחברות
+          </button>
+          <button
+            type="button"
+            onClick={() => { setMode("signup"); setPasswordError(""); }}
+            className={`flex-1 rounded-md py-2 text-sm font-bold transition-colors ${
+              mode === "signup"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground"
+            }`}
+          >
+            הרשמה
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="bg-card p-6 rounded-xl shadow-soft space-y-4">
           <div className="space-y-1.5">
             <label htmlFor="email" className="text-sm font-bold text-foreground">
               אימייל
@@ -117,9 +172,12 @@ const Login = () => {
               placeholder="••••••••"
               dir="ltr"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => { setPassword(e.target.value); setPasswordError(""); }}
               required
             />
+            {passwordError && (
+              <p className="text-sm text-destructive font-medium">{passwordError}</p>
+            )}
           </div>
 
           <Button
@@ -127,7 +185,9 @@ const Login = () => {
             disabled={submitting}
             className="w-full py-3 text-base font-bold"
           >
-            {submitting ? "מתחבר..." : "התחברות"}
+            {submitting
+              ? (mode === "login" ? "מתחבר..." : "נרשם...")
+              : (mode === "login" ? "התחברות" : "הרשמה")}
           </Button>
         </form>
       </motion.div>
