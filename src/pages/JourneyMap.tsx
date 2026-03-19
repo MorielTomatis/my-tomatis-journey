@@ -233,7 +233,11 @@ const JourneyMap = () => {
     : { series: 1, stage: 0 };
 
   const motivationText = getMotivationText(currentSeries, currentStage);
-  const progressPercent = child ? Math.round(((child.current_phase - 1) / 6) * 100) : 0;
+  // 84-day journey: 14 days × 6 phases
+  const TOTAL_JOURNEY_DAYS = 84;
+  // TODO: Replace mock with real completed days from DB
+  const totalCompletedDays = 18;
+  const progressPercent = Math.round((totalCompletedDays / TOTAL_JOURNEY_DAYS) * 100);
 
   return (
     <main className="max-w-md mx-auto h-svh flex flex-col bg-background overflow-hidden" dir="rtl">
