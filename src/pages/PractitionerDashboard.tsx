@@ -58,6 +58,7 @@ interface ChildWithStats {
   start_date: string;
   passive_duration: number;
   icon: string;
+  profile_type: string | null;
   sessionCount: number;
   lastSessionDate: string | null;
   loggedToday: boolean;
@@ -100,6 +101,17 @@ const PractitionerDashboard = () => {
   const [resetOpen, setResetOpen] = useState(false);
   const [resetChild, setResetChild] = useState<ChildWithStats | null>(null);
   const [resetSubmitting, setResetSubmitting] = useState(false);
+
+  // Edit modal
+  const [editOpen, setEditOpen] = useState(false);
+  const [editChild, setEditChild] = useState<ChildWithStats | null>(null);
+  const [editForm, setEditForm] = useState({ first_name: "", last_name: "", parent_email: "", profile_type: "child", icon: "rocket" });
+  const [editSubmitting, setEditSubmitting] = useState(false);
+
+  // Delete confirmation
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteChild, setDeleteChild] = useState<ChildWithStats | null>(null);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -148,6 +160,7 @@ const PractitionerDashboard = () => {
           start_date: c.start_date,
           passive_duration: c.passive_duration,
           icon: c.icon ?? "rocket",
+          profile_type: c.profile_type ?? "child",
           sessionCount: passiveSessions.length,
           lastSessionDate: lastSession?.date ?? null,
           loggedToday,
@@ -230,6 +243,49 @@ const PractitionerDashboard = () => {
       toast({ title: "שגיאה באיפוס", variant: "destructive" });
     } finally {
       setResetSubmitting(false);
+    }
+  };
+
+  // Edit handler
+  const handleEdit = async () => {
+    if (!editChild) return;
+    setEditSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from("children")
+        .update({
+          first_name: editForm.first_name,
+          last_name: editForm.last_name,
+          parent_email: editForm.parent_email || null,
+          profile_type: editForm.profile_type,
+          icon: editForm.icon,
+        })
+        .eq("id", editChild.id);
+      if (error) throw error;
+      toast({ title: "הפרופיל עודכן בהצלחה ✓" });
+      setEditOpen(false);
+      await fetchChildren();
+    } catch {
+      toast({ title: "שגיאה בעדכון", variant: "destructive" });
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
+
+  // Delete handler
+  const handleDelete = async () => {
+    if (!deleteChild) return;
+    setDeleteSubmitting(true);
+    try {
+      const { error } = await supabase.from("children").delete().eq("id", deleteChild.id);
+      if (error) throw error;
+      toast({ title: "המטופל נמחק בהצלחה" });
+      setDeleteOpen(false);
+      await fetchChildren();
+    } catch {
+      toast({ title: "שגיאה במחיקה", variant: "destructive" });
+    } finally {
+      setDeleteSubmitting(false);
     }
   };
 
@@ -346,6 +402,21 @@ const PractitionerDashboard = () => {
                         <DropdownMenuContent align="start">
                           <DropdownMenuItem
                             onClick={() => {
+                              setEditChild(child);
+                              setEditForm({
+                                first_name: child.first_name,
+                                last_name: child.last_name,
+                                parent_email: child.parent_email ?? "",
+                                profile_type: child.profile_type ?? "child",
+                                icon: child.icon,
+                              });
+                              setEditOpen(true);
+                            }}
+                          >
+                            ✏️ <span className="mr-2">עריכה</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
                               setLogChild(child);
                               setLogForm({
                                 date: today,
@@ -364,10 +435,18 @@ const PractitionerDashboard = () => {
                               setResetChild(child);
                               setResetOpen(true);
                             }}
-                            className="text-destructive focus:text-destructive"
                           >
                             <span className="ml-2">🔄</span>
                             איפוס שלב
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setDeleteChild(child);
+                              setDeleteOpen(true);
+                            }}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            🗑️ <span className="mr-2">מחיקה</span>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -475,6 +554,108 @@ const PractitionerDashboard = () => {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {resetSubmitting ? "מאפס..." : "אפס שלב"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ===== EDIT CLIENT MODAL ===== */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>עריכת מטופל</DialogTitle>
+            <DialogDescription>עדכון פרטי המטופל</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold">שם פרטי</label>
+                <Input value={editForm.first_name} onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold">שם משפחה</label>
+                <Input value={editForm.last_name} onChange={(e) => setEditForm({ ...editForm, last_name: e.target.value })} />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold">אימייל מורשה</label>
+              <Input type="email" dir="ltr" value={editForm.parent_email} onChange={(e) => setEditForm({ ...editForm, parent_email: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold">סוג פרופיל</label>
+              <div className="flex gap-2">
+                {[
+                  { value: "child", label: "ילד 🚀", icon: "rocket" },
+                  { value: "adult", label: "מבוגר ☀️", icon: "sun" },
+                  { value: "partner", label: "בן/בת זוג 🛡️", icon: "shield" },
+                ].map((pt) => (
+                  <button
+                    key={pt.value}
+                    type="button"
+                    onClick={() => setEditForm({ ...editForm, profile_type: pt.value, icon: pt.icon })}
+                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors border ${
+                      editForm.profile_type === pt.value
+                        ? "bg-accent text-accent-foreground border-accent"
+                        : "bg-background border-border text-muted-foreground hover:border-accent/50"
+                    }`}
+                  >
+                    {pt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold">אייקון</label>
+              <div className="flex gap-2">
+                {[
+                  { value: "rocket", label: "🚀" },
+                  { value: "sun", label: "☀️" },
+                  { value: "star", label: "⭐" },
+                  { value: "shield", label: "🛡️" },
+                ].map((ic) => (
+                  <button
+                    key={ic.value}
+                    type="button"
+                    onClick={() => setEditForm({ ...editForm, icon: ic.value })}
+                    className={`h-10 w-10 rounded-lg flex items-center justify-center text-lg border transition-colors ${
+                      editForm.icon === ic.value
+                        ? "bg-accent text-accent-foreground border-accent"
+                        : "bg-background border-border hover:border-accent/50"
+                    }`}
+                  >
+                    {ic.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleEdit} disabled={editSubmitting} className="w-full">
+              {editSubmitting ? "שומר..." : "שמור שינויים"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ===== DELETE CONFIRMATION ===== */}
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>מחיקת מטופל</AlertDialogTitle>
+            <AlertDialogDescription>
+              האם אתה בטוח שברצונך למחוק מטופל זה?
+              <br />
+              <strong>לא ניתן לבטל פעולה זו.</strong>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleteSubmitting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteSubmitting ? "מוחק..." : "מחק"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
