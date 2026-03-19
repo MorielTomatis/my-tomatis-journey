@@ -18,7 +18,7 @@ const Login = () => {
   const [passwordError, setPasswordError] = useState("");
 
   // If already logged in, redirect
-  if (!loading && user && role) {
+  if (!loading && user) {
     if (role === "practitioner") {
       navigate("/practitioner", { replace: true });
     } else {
