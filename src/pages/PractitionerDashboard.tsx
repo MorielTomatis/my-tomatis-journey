@@ -82,17 +82,8 @@ const PractitionerDashboard = () => {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("active");
 
-  // Add client modal
+  // Family Creator modal
   const [addOpen, setAddOpen] = useState(false);
-  const [addForm, setAddForm] = useState({
-    first_name: "",
-    last_name: "",
-    parent_email: "",
-    start_date: new Date().toISOString().split("T")[0],
-    passive_duration: 40,
-    starting_phase: 1,
-  });
-  const [addSubmitting, setAddSubmitting] = useState(false);
 
   // Manual log modal
   const [logOpen, setLogOpen] = useState(false);
