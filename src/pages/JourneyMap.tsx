@@ -106,30 +106,27 @@ interface StageCheckpointProps {
 const StageCheckpoint = ({ stageIndex, isActive, isPast }: StageCheckpointProps) => {
   const asset = stageAssets[stageIndex];
   return (
-    <div className="relative flex flex-col items-center gap-0">
+    <div className="relative flex flex-col items-center">
       {isActive && (
         <motion.div
           initial={{ y: -6, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="absolute -top-5 z-10 text-lg"
+          className="absolute -top-5 z-20 text-lg"
         >
           📍
         </motion.div>
       )}
       <div
-        className={`w-14 h-14 rounded-full flex items-center justify-center border-2 transition-colors overflow-hidden ${
+        className={`bg-white/95 rounded-2xl shadow-md p-1.5 flex items-center justify-center w-[100px] h-[68px] relative z-10 transition-all ${
           isActive
-            ? "border-accent bg-accent/20 shadow-soft ring-2 ring-accent/40"
+            ? "shadow-lg ring-2 ring-accent/50"
             : isPast
-            ? "border-primary/40 bg-primary/10"
-            : "border-border bg-card"
+            ? "opacity-70"
+            : "opacity-50"
         }`}
       >
-        <img src={asset.src} alt={asset.label} className="w-10 h-10 object-contain" />
+        <img src={asset.src} alt={asset.label} className="w-full h-full object-contain" />
       </div>
-      <span className="text-[11px] font-extrabold text-foreground leading-tight text-center max-w-[90px] mt-0.5">
-        {asset.label}
-      </span>
     </div>
   );
 };
