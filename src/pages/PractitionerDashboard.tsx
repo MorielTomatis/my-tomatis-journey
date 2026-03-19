@@ -267,7 +267,7 @@ const PractitionerDashboard = () => {
           <div className="flex items-center gap-2">
             <Button onClick={() => setAddOpen(true)} className="gap-2">
               <Plus className="h-4 w-4" />
-              הוספת מטופל חדש
+              יצירת משפחה
             </Button>
             <Button variant="ghost" size="icon" onClick={signOut} title="התנתק">
               <LogOut className="h-4 w-4" />
