@@ -244,6 +244,49 @@ const PractitionerDashboard = () => {
     }
   };
 
+  // Edit handler
+  const handleEdit = async () => {
+    if (!editChild) return;
+    setEditSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from("children")
+        .update({
+          first_name: editForm.first_name,
+          last_name: editForm.last_name,
+          parent_email: editForm.parent_email || null,
+          profile_type: editForm.profile_type,
+          icon: editForm.icon,
+        })
+        .eq("id", editChild.id);
+      if (error) throw error;
+      toast({ title: "הפרופיל עודכן בהצלחה ✓" });
+      setEditOpen(false);
+      await fetchChildren();
+    } catch {
+      toast({ title: "שגיאה בעדכון", variant: "destructive" });
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
+
+  // Delete handler
+  const handleDelete = async () => {
+    if (!deleteChild) return;
+    setDeleteSubmitting(true);
+    try {
+      const { error } = await supabase.from("children").delete().eq("id", deleteChild.id);
+      if (error) throw error;
+      toast({ title: "המטופל נמחק בהצלחה" });
+      setDeleteOpen(false);
+      await fetchChildren();
+    } catch {
+      toast({ title: "שגיאה במחיקה", variant: "destructive" });
+    } finally {
+      setDeleteSubmitting(false);
+    }
+  };
+
   if (loadError) {
     return (
       <main className="max-w-md mx-auto min-h-svh flex items-center justify-center px-4">
