@@ -62,9 +62,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setError(null);
 
         if (userRole === "parent") {
-          supabase.rpc("link_my_children" as any).catch((err: any) =>
-            console.warn("link_my_children failed (non-blocking):", err)
-          );
+          supabase.rpc("link_my_children" as any).then(({ error: linkErr }: any) => {
+            if (linkErr) console.warn("link_my_children failed (non-blocking):", linkErr);
+          });
         }
       } catch (err: any) {
         console.error("Auth initialization error:", err);
