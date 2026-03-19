@@ -27,6 +27,7 @@ export type Database = {
           parent_email: string | null
           parent_id: string | null
           passive_duration: number
+          profile_type: string | null
           start_date: string
           updated_at: string
           user_id: string | null
@@ -43,6 +44,7 @@ export type Database = {
           parent_email?: string | null
           parent_id?: string | null
           passive_duration?: number
+          profile_type?: string | null
           start_date?: string
           updated_at?: string
           user_id?: string | null
@@ -59,6 +61,7 @@ export type Database = {
           parent_email?: string | null
           parent_id?: string | null
           passive_duration?: number
+          profile_type?: string | null
           start_date?: string
           updated_at?: string
           user_id?: string | null
