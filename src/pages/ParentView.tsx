@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut } from "lucide-react";
+import { LogOut, Rocket, Sun, Star, Shield, Headphones, Mic } from "lucide-react";
 
 const PHASE_LABELS: Record<number, { label: string; type: "listening_only" | "listening_and_mic" }> = {
   1: { label: "שלב אינטנסיבי", type: "listening_only" },
@@ -12,6 +12,13 @@ const PHASE_LABELS: Record<number, { label: string; type: "listening_only" | "li
   4: { label: "שלב קונסולידציה", type: "listening_and_mic" },
   5: { label: "שלב אינטנסיבי", type: "listening_and_mic" },
   6: { label: "שלב קונסולידציה", type: "listening_and_mic" },
+};
+
+const ICON_MAP: Record<string, { emoji: string; Icon: typeof Rocket }> = {
+  rocket: { emoji: "🚀", Icon: Rocket },
+  sun: { emoji: "☀️", Icon: Sun },
+  star: { emoji: "⭐", Icon: Star },
+  shield: { emoji: "🛡️", Icon: Shield },
 };
 
 const statusColor: Record<string, string> = {
@@ -30,111 +37,107 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } },
 };
 
-interface ChildData {
+interface ChildProfile {
   id: string;
   first_name: string;
+  last_name: string;
   current_phase: number;
   start_date: string;
+  icon: string;
+  passive_duration: number;
+}
+
+interface ChildCardState {
+  todayLogged: boolean;
+  phaseDayNumber: number;
+  weekDays: { label: string; status: string }[];
+  listeningDone: boolean;
+  micDone: boolean;
+  micMinutes: number | "";
+  submitting: boolean;
 }
 
 const ParentView = () => {
   const { signOut } = useAuth();
   const { toast } = useToast();
-  const [child, setChild] = useState<ChildData | null>(null);
-  const [todayLogged, setTodayLogged] = useState(false);
-  const [weekDays, setWeekDays] = useState<{ label: string; status: string }[]>([]);
+  const [profiles, setProfiles] = useState<ChildProfile[]>([]);
+  const [cardStates, setCardStates] = useState<Record<string, ChildCardState>>({});
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [phaseDayNumber, setPhaseDayNumber] = useState(1);
-
-  // Form state
-  const [listeningDone, setListeningDone] = useState(false);
-  const [micDone, setMicDone] = useState(false);
-  const [micMinutes, setMicMinutes] = useState<number | "">("");
-  const [needsOnboarding, setNeedsOnboarding] = useState(false);
-  const [onboardingName, setOnboardingName] = useState({ first: "", last: "" });
-  const [onboardingSubmitting, setOnboardingSubmitting] = useState(false);
+  const [noProfile, setNoProfile] = useState(false);
 
   const today = new Date().toISOString().split("T")[0];
 
   const fetchData = useCallback(async () => {
     try {
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setLoading(false); return; }
 
-      // Get profile for this user (parent_id OR user_id match)
-      const { data: children, error: childErr } = await supabase
+      const { data: children, error } = await supabase
         .from("children")
-        .select("id, first_name, current_phase, start_date")
-        .or(`parent_id.eq.${user.id},user_id.eq.${user.id}`)
-        .limit(1);
+        .select("id, first_name, last_name, current_phase, start_date, icon, passive_duration")
+        .or(`parent_id.eq.${user.id},user_id.eq.${user.id},parent_email.eq.${user.email}`);
 
-      if (childErr) { setLoading(false); return; }
+      if (error) { setLoading(false); return; }
       if (!children?.length) {
-        setNeedsOnboarding(true);
+        setNoProfile(true);
         setLoading(false);
         return;
       }
 
-      const c = children[0];
-      setChild(c);
+      setProfiles(children as ChildProfile[]);
 
-      // Check if today is already logged
-      const { data: todaySession } = await supabase
+      // Fetch all sessions for all children
+      const childIds = children.map((c) => c.id);
+      const { data: allSessions } = await supabase
         .from("sessions")
-        .select("id")
-        .eq("child_id", c.id)
-        .eq("date", today)
-        .limit(1);
+        .select("child_id, date, passive_completed, is_archived")
+        .in("child_id", childIds);
 
-      setTodayLogged(!!todaySession?.length);
-
-      // Calculate day number = unarchived passive sessions + 1 (capped at 14)
-      const { count: unarchivedCount } = await supabase
-        .from("sessions")
-        .select("id", { count: "exact", head: true })
-        .eq("child_id", c.id)
-        .eq("passive_completed", true)
-        .eq("is_archived", false);
-
-      setPhaseDayNumber(Math.min((unarchivedCount ?? 0) + 1, 14));
-
-      // Build week view — get sessions for the last 5 days
+      // Build week dates
       const dayLabels = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳"];
       const now = new Date();
-      const dayOfWeek = now.getDay(); // 0=Sun
-      const sundayOffset = dayOfWeek === 6 ? 1 : -dayOfWeek; // If Sat, next Sun; else back to Sun
+      const dayOfWeek = now.getDay();
+      const sundayOffset = dayOfWeek === 6 ? 1 : -dayOfWeek;
       const sunday = new Date(now);
       sunday.setDate(now.getDate() + sundayOffset);
-
       const weekDates = Array.from({ length: 5 }, (_, i) => {
         const d = new Date(sunday);
         d.setDate(sunday.getDate() + i);
         return d.toISOString().split("T")[0];
       });
 
-      const { data: weekSessions } = await supabase
-        .from("sessions")
-        .select("date, passive_completed")
-        .eq("child_id", c.id)
-        .in("date", weekDates);
+      const states: Record<string, ChildCardState> = {};
 
-      const sessionMap = new Map(weekSessions?.map((s) => [s.date, s.passive_completed]) ?? []);
+      for (const child of children) {
+        const sessions = allSessions?.filter((s) => s.child_id === child.id) ?? [];
+        const todaySession = sessions.find((s) => s.date === today);
+        const unarchivedPassive = sessions.filter((s) => s.passive_completed && !s.is_archived);
 
-      const days = weekDates.map((date, i) => {
-        const isPast = date < today;
-        const isToday = date === today;
-        const wasLogged = sessionMap.get(date);
+        const sessionMap = new Map(
+          sessions.filter((s) => weekDates.includes(s.date)).map((s) => [s.date, s.passive_completed])
+        );
 
-        let status = "none";
-        if (wasLogged) status = "logged";
-        else if (isPast || (isToday && todaySession?.length)) status = isPast ? "missed" : "logged";
+        const weekDays = weekDates.map((date, i) => {
+          const isPast = date < today;
+          const wasLogged = sessionMap.get(date);
+          let status = "none";
+          if (wasLogged) status = "logged";
+          else if (isPast) status = "missed";
+          return { label: dayLabels[i], status };
+        });
 
-        return { label: dayLabels[i], status };
-      });
+        states[child.id] = {
+          todayLogged: !!todaySession,
+          phaseDayNumber: Math.min(unarchivedPassive.length + 1, 14),
+          weekDays,
+          listeningDone: false,
+          micDone: false,
+          micMinutes: "",
+          submitting: false,
+        };
+      }
 
-      setWeekDays(days);
+      setCardStates(states);
     } catch {
       toast({ title: "שגיאה בטעינת נתונים", variant: "destructive" });
     } finally {
@@ -144,9 +147,18 @@ const ParentView = () => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const handleSubmit = async () => {
-    if (!child || submitting) return;
-    setSubmitting(true);
+  const updateCardState = (childId: string, updates: Partial<ChildCardState>) => {
+    setCardStates((prev) => ({
+      ...prev,
+      [childId]: { ...prev[childId], ...updates },
+    }));
+  };
+
+  const handleSubmit = async (child: ChildProfile) => {
+    const state = cardStates[child.id];
+    if (!state || state.submitting) return;
+
+    updateCardState(child.id, { submitting: true });
 
     try {
       const requiresMic = PHASE_LABELS[child.current_phase]?.type === "listening_and_mic";
@@ -155,27 +167,20 @@ const ParentView = () => {
         child_id: child.id,
         date: today,
         passive_completed: true,
-        active_completed: requiresMic ? micDone : false,
-        active_minutes: requiresMic && micDone ? (micMinutes || null) : null,
+        active_completed: requiresMic ? state.micDone : false,
+        active_minutes: requiresMic && state.micDone ? (state.micMinutes || null) : null,
       });
 
       if (error) throw error;
 
-      setTodayLogged(true);
-      // Refresh child data (phase may have advanced)
+      toast({ title: `נשמר בהצלחה עבור ${child.first_name}! 🎉` });
       await fetchData();
-
-      toast({ title: "נשמר בהצלחה! 🎉" });
     } catch {
       toast({ title: "שגיאה בשמירה", variant: "destructive" });
     } finally {
-      setSubmitting(false);
+      updateCardState(child.id, { submitting: false });
     }
   };
-
-  // Compute derived values
-  const phaseConfig = child ? PHASE_LABELS[child.current_phase] : null;
-  const requiresMic = phaseConfig?.type === "listening_and_mic";
 
   if (loading) {
     return (
@@ -185,211 +190,157 @@ const ParentView = () => {
     );
   }
 
-  const handleOnboarding = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (onboardingSubmitting) return;
-    setOnboardingSubmitting(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user");
-
-      const { error } = await supabase.from("children").insert({
-        first_name: onboardingName.first,
-        last_name: onboardingName.last,
-        user_id: user.id,
-        current_phase: 1,
-      });
-      if (error) throw error;
-
-      setNeedsOnboarding(false);
-      setLoading(true);
-      await fetchData();
-    } catch {
-      toast({ title: "שגיאה ביצירת פרופיל", variant: "destructive" });
-    } finally {
-      setOnboardingSubmitting(false);
-    }
-  };
-
-  if (!child && needsOnboarding) {
+  if (noProfile) {
     return (
       <main className="max-w-md mx-auto min-h-svh flex items-center justify-center p-5" dir="rtl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full space-y-6"
-        >
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold text-primary">ברוכים הבאים למסע טומטיס</h1>
-            <p className="text-muted-foreground text-sm">בואו נתחיל! הזינו את פרטיכם</p>
-          </div>
-          <form onSubmit={handleOnboarding} className="bg-card p-6 rounded-xl shadow-soft space-y-4">
-            <div className="space-y-1.5">
-              <label htmlFor="first-name" className="text-sm font-bold text-foreground">שם פרטי</label>
-              <input
-                id="first-name"
-                type="text"
-                required
-                value={onboardingName.first}
-                onChange={(e) => setOnboardingName((p) => ({ ...p, first: e.target.value }))}
-                className="w-full bg-background border border-border rounded-lg py-2 px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label htmlFor="last-name" className="text-sm font-bold text-foreground">שם משפחה</label>
-              <input
-                id="last-name"
-                type="text"
-                required
-                value={onboardingName.last}
-                onChange={(e) => setOnboardingName((p) => ({ ...p, last: e.target.value }))}
-                className="w-full bg-background border border-border rounded-lg py-2 px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-              />
-            </div>
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              type="submit"
-              disabled={onboardingSubmitting}
-              className="w-full py-3 rounded-xl font-bold text-base bg-accent text-accent-foreground shadow-soft disabled:opacity-50"
-            >
-              {onboardingSubmitting ? "יוצר פרופיל..." : "התחלת המסע 🚀"}
-            </motion.button>
-          </form>
-        </motion.div>
-      </main>
-    );
-  }
-
-  if (!child) {
-    return (
-      <main className="max-w-md mx-auto min-h-svh flex items-center justify-center p-5">
-        <div className="text-center space-y-2">
-          <p className="text-lg font-bold text-foreground">אין פרופיל משויך לחשבון זה</p>
-          <p className="text-sm text-muted-foreground">פנה/י למטפל/ת להוספת פרטיך למערכת</p>
+        <div className="text-center space-y-3 bg-card p-8 rounded-xl shadow-soft">
+          <span className="text-4xl">🌱</span>
+          <p className="text-lg font-bold text-foreground">הפרופיל שלך עדיין לא הוגדר על ידי המטפל.</p>
+          <p className="text-sm text-muted-foreground">אנא צור קשר עם הקליניקה.</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="max-w-md mx-auto min-h-svh flex flex-col p-5">
-      <motion.div
-        variants={container}
-        initial="hidden"
-        animate="show"
-        className="space-y-6 flex-1"
-      >
+    <main className="max-w-md mx-auto min-h-svh flex flex-col p-5" dir="rtl">
+      <motion.div variants={container} initial="hidden" animate="show" className="space-y-6 flex-1">
         {/* Header */}
-        <motion.header variants={item} className="py-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-primary">
-              {child.first_name} · מסע טומטיס · יום {phaseDayNumber}
-            </h1>
-            <button onClick={signOut} className="text-muted-foreground hover:text-foreground transition-colors" title="התנתק">
-              <LogOut className="h-5 w-5" />
-            </button>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 bg-accent text-accent-foreground px-4 py-1.5 rounded-full text-sm font-bold shadow-sm">
-              שלב {child.current_phase} מתוך 6 · {phaseConfig?.label}
-            </span>
-          </div>
+        <motion.header variants={item} className="py-4 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-primary">המסע שלנו</h1>
+          <button onClick={signOut} className="text-muted-foreground hover:text-foreground transition-colors" title="התנתק">
+            <LogOut className="h-5 w-5" />
+          </button>
         </motion.header>
 
-        {/* Progress Card */}
-        <motion.div variants={item} className="bg-card p-6 rounded-xl shadow-soft">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="font-bold text-lg">התקדמות שבועית</h2>
-            <span className="text-xs bg-accent/10 text-accent px-3 py-1 rounded-full font-bold">
-              {weekDays.filter((d) => d.status === "logged").length}/{weekDays.length} ימים
-            </span>
-          </div>
-          <div className="flex gap-2">
-            {weekDays.map((day) => (
-              <div key={day.label} className="flex-1 text-center space-y-1">
-                <div className={`h-10 rounded-lg ${statusColor[day.status]}`} />
-                <span className="text-xs text-muted-foreground">{day.label}</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
+        {/* Profile Cards */}
+        {profiles.map((child) => {
+          const state = cardStates[child.id];
+          if (!state) return null;
 
-        {/* Logging Actions or Success */}
-        <motion.div variants={item} className="space-y-3">
-          {todayLogged ? (
-            <div className="bg-card p-6 rounded-xl shadow-soft text-center space-y-2">
-              <span className="text-4xl">🎉</span>
-              <p className="font-bold text-lg text-foreground">כל הכבוד! סיימנו להיום.</p>
-              <p className="text-muted-foreground">נתראה מחר</p>
-            </div>
-          ) : (
-            <>
-              {requiresMic && (
-                <p className="text-sm text-center text-muted-foreground leading-relaxed px-2">
-                  עבודה עם המיקרופון היא הלב של התהליך. אפילו חמש דקות ביום עושות הבדל גדול.
-                </p>
-              )}
+          const phaseConfig = PHASE_LABELS[child.current_phase];
+          const requiresMic = phaseConfig?.type === "listening_and_mic";
+          const iconInfo = ICON_MAP[child.icon] || ICON_MAP.rocket;
 
-              <motion.button
-                whileTap={{ scale: 0.98 }}
-                transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-                onClick={() => setListeningDone(!listeningDone)}
-                className={`w-full py-4 rounded-xl font-bold text-lg shadow-soft transition-colors ${
-                  listeningDone ? "bg-accent text-accent-foreground" : "bg-primary text-primary-foreground"
-                }`}
-              >
-                האזנה פסיבית הושלמה {listeningDone ? "✓" : ""}
-              </motion.button>
-
-              {requiresMic && (
-                <>
-                  <motion.button
-                    whileTap={{ scale: 0.98 }}
-                    transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-                    onClick={() => setMicDone(!micDone)}
-                    className={`w-full py-4 rounded-xl font-bold text-base shadow-soft transition-colors ${
-                      micDone ? "bg-accent text-accent-foreground" : "bg-primary text-primary-foreground"
-                    }`}
-                  >
-                    עבודה פעילה עם המיקרופון הושלמה {micDone ? "✓" : ""}
-                  </motion.button>
-
-                  <div className="flex items-center gap-3 bg-card p-3 rounded-xl shadow-soft">
-                    <label htmlFor="mic-minutes" className="text-sm font-bold text-foreground whitespace-nowrap">
-                      כמה דקות?
-                    </label>
-                    <input
-                      id="mic-minutes"
-                      type="number"
-                      min={0}
-                      max={120}
-                      value={micMinutes}
-                      onChange={(e) => setMicMinutes(e.target.value === "" ? "" : Number(e.target.value))}
-                      placeholder="0"
-                      className="w-20 text-center bg-background border border-border rounded-lg py-2 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
+          return (
+            <motion.div
+              key={child.id}
+              variants={item}
+              className={`bg-card rounded-xl shadow-soft overflow-hidden border-2 transition-colors ${
+                state.todayLogged ? "border-accent" : "border-border"
+              }`}
+            >
+              {/* Card header */}
+              <div className="p-5 space-y-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">{iconInfo.emoji}</span>
+                  <div>
+                    <h2 className="font-bold text-lg text-foreground">המסע של {child.first_name}</h2>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span className="inline-flex items-center gap-1 bg-accent/10 text-accent px-2.5 py-0.5 rounded-full text-xs font-bold">
+                        שלב {child.current_phase} · {phaseConfig?.label}
+                      </span>
+                      <span className="flex items-center gap-1 text-xs">
+                        <Headphones className="h-3.5 w-3.5" />
+                        יום {state.phaseDayNumber} מתוך 14
+                      </span>
+                    </div>
                   </div>
-                </>
-              )}
+                </div>
 
-              {/* Submit button — only shows after listening is marked */}
-              {listeningDone && (
-                <motion.button
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                  onClick={handleSubmit}
-                  disabled={submitting}
-                  className="w-full py-4 rounded-xl font-bold text-lg bg-accent text-accent-foreground shadow-soft disabled:opacity-50"
-                >
-                  {submitting ? "שומר..." : "שמור ✓"}
-                </motion.button>
-              )}
-            </>
-          )}
-        </motion.div>
+                {/* Weekly progress */}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-muted-foreground">התקדמות שבועית</span>
+                    <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full font-bold">
+                      {state.weekDays.filter((d) => d.status === "logged").length}/{state.weekDays.length}
+                    </span>
+                  </div>
+                  <div className="flex gap-1.5">
+                    {state.weekDays.map((day) => (
+                      <div key={day.label} className="flex-1 text-center space-y-1">
+                        <div className={`h-8 rounded-lg ${statusColor[day.status]}`} />
+                        <span className="text-[10px] text-muted-foreground">{day.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Log actions */}
+                {state.todayLogged ? (
+                  <div className="text-center space-y-1 py-2">
+                    <span className="text-3xl">🎉</span>
+                    <p className="font-bold text-foreground">כל הכבוד! סיימנו להיום.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {requiresMic && (
+                      <p className="text-xs text-center text-muted-foreground leading-relaxed">
+                        עבודה עם המיקרופון היא הלב של התהליך. אפילו חמש דקות ביום עושות הבדל גדול.
+                      </p>
+                    )}
+
+                    <motion.button
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => updateCardState(child.id, { listeningDone: !state.listeningDone })}
+                      className={`w-full py-3 rounded-xl font-bold text-base shadow-soft transition-colors flex items-center justify-center gap-2 ${
+                        state.listeningDone ? "bg-accent text-accent-foreground" : "bg-primary text-primary-foreground"
+                      }`}
+                    >
+                      <Headphones className="h-4 w-4" />
+                      האזנה פסיבית הושלמה {state.listeningDone ? "✓" : ""}
+                    </motion.button>
+
+                    {requiresMic && (
+                      <>
+                        <motion.button
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => updateCardState(child.id, { micDone: !state.micDone })}
+                          className={`w-full py-3 rounded-xl font-bold text-sm shadow-soft transition-colors flex items-center justify-center gap-2 ${
+                            state.micDone ? "bg-accent text-accent-foreground" : "bg-primary text-primary-foreground"
+                          }`}
+                        >
+                          <Mic className="h-4 w-4" />
+                          עבודה פעילה עם המיקרופון {state.micDone ? "✓" : ""}
+                        </motion.button>
+
+                        <div className="flex items-center gap-3 bg-muted/50 p-3 rounded-xl">
+                          <label className="text-sm font-bold text-foreground whitespace-nowrap">כמה דקות?</label>
+                          <input
+                            type="number"
+                            min={0}
+                            max={120}
+                            value={state.micMinutes}
+                            onChange={(e) =>
+                              updateCardState(child.id, {
+                                micMinutes: e.target.value === "" ? "" : Number(e.target.value),
+                              })
+                            }
+                            placeholder="0"
+                            className="w-20 text-center bg-background border border-border rounded-lg py-2 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {state.listeningDone && (
+                      <motion.button
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => handleSubmit(child)}
+                        disabled={state.submitting}
+                        className="w-full py-3 rounded-xl font-bold text-base bg-accent text-accent-foreground shadow-soft disabled:opacity-50"
+                      >
+                        {state.submitting ? "שומר..." : "שמור ✓"}
+                      </motion.button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          );
+        })}
       </motion.div>
 
       {/* Bottom Nav */}
