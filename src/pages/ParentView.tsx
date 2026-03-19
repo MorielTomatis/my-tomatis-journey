@@ -51,6 +51,9 @@ const ParentView = () => {
   const [listeningDone, setListeningDone] = useState(false);
   const [micDone, setMicDone] = useState(false);
   const [micMinutes, setMicMinutes] = useState<number | "">("");
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [onboardingName, setOnboardingName] = useState({ first: "", last: "" });
+  const [onboardingSubmitting, setOnboardingSubmitting] = useState(false);
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -60,14 +63,19 @@ const ParentView = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setLoading(false); return; }
 
-      // Get child for this parent
+      // Get profile for this user (parent_id OR user_id match)
       const { data: children, error: childErr } = await supabase
         .from("children")
         .select("id, first_name, current_phase, start_date")
-        .eq("parent_id", user.id)
+        .or(`parent_id.eq.${user.id},user_id.eq.${user.id}`)
         .limit(1);
 
-      if (childErr || !children?.length) { setLoading(false); return; }
+      if (childErr) { setLoading(false); return; }
+      if (!children?.length) {
+        setNeedsOnboarding(true);
+        setLoading(false);
+        return;
+      }
 
       const c = children[0];
       setChild(c);
