@@ -60,6 +60,7 @@ interface ChildCardState {
 
 const ParentView = () => {
   const { signOut } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [profiles, setProfiles] = useState<ChildProfile[]>([]);
   const [cardStates, setCardStates] = useState<Record<string, ChildCardState>>({});
