@@ -397,65 +397,8 @@ const PractitionerDashboard = () => {
         </div>
       </motion.div>
 
-      {/* ===== ADD CLIENT MODAL ===== */}
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>הוספת מטופל חדש</DialogTitle>
-            <DialogDescription>הזינו את פרטי המטופל וההורה</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold">שם פרטי</label>
-                <Input value={addForm.first_name} onChange={(e) => setAddForm({ ...addForm, first_name: e.target.value })} />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold">שם משפחה</label>
-                <Input value={addForm.last_name} onChange={(e) => setAddForm({ ...addForm, last_name: e.target.value })} />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-bold">אימייל הורה</label>
-              <Input type="email" dir="ltr" value={addForm.parent_email} onChange={(e) => setAddForm({ ...addForm, parent_email: e.target.value })} />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-bold">תאריך התחלה</label>
-              <Input type="date" dir="ltr" value={addForm.start_date} onChange={(e) => setAddForm({ ...addForm, start_date: e.target.value })} />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold">משך האזנה פסיבית (דקות)</label>
-                <select
-                  value={addForm.passive_duration}
-                  onChange={(e) => setAddForm({ ...addForm, passive_duration: Number(e.target.value) })}
-                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value={40}>40</option>
-                  <option value={60}>60</option>
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold">שלב התחלתי</label>
-                <select
-                  value={addForm.starting_phase}
-                  onChange={(e) => setAddForm({ ...addForm, starting_phase: Number(e.target.value) })}
-                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  {[1, 2, 3, 4, 5, 6].map((p) => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={handleAddClient} disabled={addSubmitting} className="w-full">
-              {addSubmitting ? "שומר..." : "הוסף מטופל"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* ===== FAMILY CREATOR MODAL ===== */}
+      <FamilyCreatorDialog open={addOpen} onOpenChange={setAddOpen} onCreated={fetchChildren} />
 
       {/* ===== MANUAL LOG MODAL ===== */}
       <Dialog open={logOpen} onOpenChange={setLogOpen}>
