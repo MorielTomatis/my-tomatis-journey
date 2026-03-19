@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Search, Plus, MoreVertical, Calendar, Mic, Headphones, LogOut, Rocket, Sun, Star, Shield } from "lucide-react";
 import FamilyCreatorDialog from "@/components/FamilyCreatorDialog";
+import AddMemberDialog from "@/components/AddMemberDialog";
 
 const PHASE_NAMES: Record<number, string> = {
   1: "אינטנסיבי 1",
@@ -112,6 +113,11 @@ const PractitionerDashboard = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteChild, setDeleteChild] = useState<ChildWithStats | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+
+  // Add member to existing family
+  const [addMemberOpen, setAddMemberOpen] = useState(false);
+  const [addMemberEmail, setAddMemberEmail] = useState("");
+  const [addMemberLastName, setAddMemberLastName] = useState("");
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -289,6 +295,112 @@ const PractitionerDashboard = () => {
     }
   };
 
+  const renderClientCard = (child: ChildWithStats, status: "logged" | "missed" | "pending") => (
+    <>
+      {/* Top row: name + status dot + menu */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-2">
+          {tab === "active" && (
+            <span
+              className={`h-2.5 w-2.5 rounded-full shrink-0 ${
+                status === "logged"
+                  ? "bg-status-logged"
+                  : status === "missed"
+                  ? "bg-status-missed"
+                  : "bg-status-none"
+              }`}
+            />
+          )}
+          <span className="text-lg">{ICON_EMOJI[child.icon] || "🚀"}</span>
+          <h3 className="font-bold text-foreground">
+            {child.first_name} {child.last_name}
+          </h3>
+          {child.user_id && !child.parent_id && (
+            <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full font-bold">
+              מבוגר אחראי
+            </span>
+          )}
+        </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="p-1 rounded-md hover:bg-muted transition-colors">
+              <MoreVertical className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem
+              onClick={() => {
+                setEditChild(child);
+                setEditForm({
+                  first_name: child.first_name,
+                  last_name: child.last_name,
+                  parent_email: child.parent_email ?? "",
+                  profile_type: child.profile_type ?? "child",
+                  icon: child.icon,
+                });
+                setEditOpen(true);
+              }}
+            >
+              ✏️ <span className="mr-2">עריכה</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                setLogChild(child);
+                setLogForm({
+                  date: today,
+                  passive_completed: true,
+                  active_completed: false,
+                  active_minutes: "",
+                });
+                setLogOpen(true);
+              }}
+            >
+              <Calendar className="h-4 w-4 ml-2" />
+              עדכון ידני
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                setResetChild(child);
+                setResetOpen(true);
+              }}
+            >
+              <span className="ml-2">🔄</span>
+              איפוס שלב
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                setDeleteChild(child);
+                setDeleteOpen(true);
+              }}
+              className="text-destructive focus:text-destructive"
+            >
+              🗑️ <span className="mr-2">מחיקה</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Phase info */}
+      <div className="space-y-1.5">
+        <span className="inline-block bg-accent/10 text-accent px-3 py-1 rounded-full text-xs font-bold">
+          {PHASE_NAMES[child.current_phase] ?? `שלב ${child.current_phase}`}
+        </span>
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <Headphones className="h-3.5 w-3.5" />
+          <span>יום {child.sessionCount} מתוך 14</span>
+        </div>
+      </div>
+
+      {/* Last session */}
+      <p className="text-xs text-muted-foreground">
+        {child.lastSessionDate
+          ? `סשן אחרון: ${new Date(child.lastSessionDate).toLocaleDateString("he-IL")}`
+          : "טרם נרשם סשן"}
+      </p>
+    </>
+  );
+
   if (loadError) {
     return (
       <main className="max-w-md mx-auto min-h-svh flex items-center justify-center px-4">
@@ -358,124 +470,104 @@ const PractitionerDashboard = () => {
             </motion.div>
           ) : (
             <motion.div variants={container} initial="hidden" animate="show" className="flex flex-col gap-4 pb-4 w-full">
-              {filtered.map((child) => {
-                const status = getStatus(child);
+              {(() => {
+                // Group by parent_email
+                const groups = new Map<string, ChildWithStats[]>();
+                const noEmail: ChildWithStats[] = [];
+                filtered.forEach((child) => {
+                  const key = child.parent_email?.trim().toLowerCase();
+                  if (key) {
+                    if (!groups.has(key)) groups.set(key, []);
+                    groups.get(key)!.push(child);
+                  } else {
+                    noEmail.push(child);
+                  }
+                });
+
+                const familyFolders = Array.from(groups.entries());
+
                 return (
-                  <motion.div
-                    key={child.id}
-                    variants={item}
-                    className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative border-2 ${
-                      child.loggedToday ? "border-accent" : "border-inactive"
-                    }`}
-                  >
-                    {/* Top row: name + status dot + menu */}
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-2">
-                        {tab === "active" && (
-                          <span
-                            className={`h-2.5 w-2.5 rounded-full shrink-0 ${
-                              status === "logged"
-                                ? "bg-status-logged"
-                                : status === "missed"
-                                ? "bg-status-missed"
-                                : "bg-status-none"
-                            }`}
-                          />
-                        )}
-                        <span className="text-lg">{ICON_EMOJI[child.icon] || "🚀"}</span>
-                        <h3 className="font-bold text-foreground">
-                          {child.first_name} {child.last_name}
-                        </h3>
-                        {child.user_id && !child.parent_id && (
-                          <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full font-bold">
-                            מבוגר אחראי
-                          </span>
-                        )}
-                      </div>
+                  <>
+                    {familyFolders.map(([email, members]) => {
+                      const familyLastName = members[0]?.last_name || "";
+                      return (
+                        <motion.div
+                          key={email}
+                          variants={item}
+                          className="bg-muted/30 border border-border rounded-xl p-4 space-y-3"
+                        >
+                          {/* Folder Header */}
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="text-lg font-bold text-primary">משפחת {familyLastName}</h3>
+                              <p className="text-sm text-muted-foreground" dir="ltr">{email}</p>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-primary border-primary hover:bg-primary/10 gap-1.5"
+                              onClick={() => {
+                                setAddMemberEmail(email);
+                                setAddMemberLastName(familyLastName);
+                                setAddMemberOpen(true);
+                              }}
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                              הוספת בן משפחה
+                            </Button>
+                          </div>
 
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button className="p-1 rounded-md hover:bg-muted transition-colors">
-                            <MoreVertical className="h-4 w-4 text-muted-foreground" />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start">
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setEditChild(child);
-                              setEditForm({
-                                first_name: child.first_name,
-                                last_name: child.last_name,
-                                parent_email: child.parent_email ?? "",
-                                profile_type: child.profile_type ?? "child",
-                                icon: child.icon,
-                              });
-                              setEditOpen(true);
-                            }}
-                          >
-                            ✏️ <span className="mr-2">עריכה</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setLogChild(child);
-                              setLogForm({
-                                date: today,
-                                passive_completed: true,
-                                active_completed: false,
-                                active_minutes: "",
-                              });
-                              setLogOpen(true);
-                            }}
-                          >
-                            <Calendar className="h-4 w-4 ml-2" />
-                            עדכון ידני
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setResetChild(child);
-                              setResetOpen(true);
-                            }}
-                          >
-                            <span className="ml-2">🔄</span>
-                            איפוס שלב
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setDeleteChild(child);
-                              setDeleteOpen(true);
-                            }}
-                            className="text-destructive focus:text-destructive"
-                          >
-                            🗑️ <span className="mr-2">מחיקה</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                          {/* Member Cards */}
+                          <div className="flex flex-col gap-3">
+                            {members.map((child) => {
+                              const status = getStatus(child);
+                              return (
+                                <div
+                                  key={child.id}
+                                  className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative border-2 ${
+                                    child.loggedToday ? "border-accent" : "border-inactive"
+                                  }`}
+                                >
+                                  {renderClientCard(child, status)}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
+                      );
+                    })}
 
-                    {/* Phase info */}
-                    <div className="space-y-1.5">
-                      <span className="inline-block bg-accent/10 text-accent px-3 py-1 rounded-full text-xs font-bold">
-                        {PHASE_NAMES[child.current_phase] ?? `שלב ${child.current_phase}`}
-                      </span>
-                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                        <Headphones className="h-3.5 w-3.5" />
-                        <span>יום {child.sessionCount} מתוך 14</span>
-                      </div>
-                    </div>
-
-                    {/* Last session */}
-                    <p className="text-xs text-muted-foreground">
-                      {child.lastSessionDate
-                        ? `סשן אחרון: ${new Date(child.lastSessionDate).toLocaleDateString("he-IL")}`
-                        : "טרם נרשם סשן"}
-                    </p>
-                  </motion.div>
+                    {/* Ungrouped (no email) */}
+                    {noEmail.map((child) => {
+                      const status = getStatus(child);
+                      return (
+                        <motion.div
+                          key={child.id}
+                          variants={item}
+                          className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative border-2 ${
+                            child.loggedToday ? "border-accent" : "border-inactive"
+                          }`}
+                        >
+                          {renderClientCard(child, status)}
+                        </motion.div>
+                      );
+                    })}
+                  </>
                 );
-              })}
+              })()}
             </motion.div>
           )}
         </div>
       </motion.div>
+
+      {/* ===== ADD MEMBER TO FAMILY MODAL ===== */}
+      <AddMemberDialog
+        open={addMemberOpen}
+        onOpenChange={setAddMemberOpen}
+        parentEmail={addMemberEmail}
+        familyLastName={addMemberLastName}
+        onCreated={fetchChildren}
+      />
 
       {/* ===== FAMILY CREATOR MODAL ===== */}
       <FamilyCreatorDialog open={addOpen} onOpenChange={setAddOpen} onCreated={fetchChildren} />
