@@ -451,6 +451,17 @@ const PractitionerDashboard = () => {
               })()}
             </motion.div>
           )}
+        </div>
+      </motion.div>
+
+      {/* ===== ADD MEMBER TO FAMILY MODAL ===== */}
+      <AddMemberDialog
+        open={addMemberOpen}
+        onOpenChange={setAddMemberOpen}
+        parentEmail={addMemberEmail}
+        familyLastName={addMemberLastName}
+        onCreated={fetchChildren}
+      />
 
       {/* ===== FAMILY CREATOR MODAL ===== */}
       <FamilyCreatorDialog open={addOpen} onOpenChange={setAddOpen} onCreated={fetchChildren} />
