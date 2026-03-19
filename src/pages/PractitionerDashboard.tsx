@@ -119,6 +119,8 @@ const PractitionerDashboard = () => {
   const [addMemberEmail, setAddMemberEmail] = useState("");
   const [addMemberLastName, setAddMemberLastName] = useState("");
 
+  const today = new Date().toISOString().split("T")[0];
+
   const fetchChildren = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
