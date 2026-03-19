@@ -5,9 +5,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { Home, Map, LogOut } from "lucide-react";
 
-import iconEarCheck from "@/assets/icon-ear-check.png";
-import iconIntensive from "@/assets/icon-intensive.png";
-import iconConsolidation from "@/assets/icon-consolidation.png";
+import iconEarCheck from "@/assets/icon-ear-check.svg";
+import iconIntensive from "@/assets/icon-intensive.svg";
+import iconConsolidation from "@/assets/icon-consolidation.svg";
 
 interface ChildProfile {
   id: string;
