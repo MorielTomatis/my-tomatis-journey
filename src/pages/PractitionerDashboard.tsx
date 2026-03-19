@@ -146,6 +146,8 @@ const PractitionerDashboard = () => {
           current_phase: c.current_phase,
           is_active: c.is_active,
           parent_id: c.parent_id,
+          user_id: c.user_id,
+          parent_email: c.parent_email,
           start_date: c.start_date,
           passive_duration: c.passive_duration,
           sessionCount: passiveSessions.length,
