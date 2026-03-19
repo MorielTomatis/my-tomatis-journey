@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ParentView from "./pages/ParentView";
 import PractitionerDashboard from "./pages/PractitionerDashboard";
+import JourneyMap from "./pages/JourneyMap";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
