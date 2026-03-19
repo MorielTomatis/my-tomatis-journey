@@ -47,7 +47,9 @@ interface ChildWithStats {
   last_name: string;
   current_phase: number;
   is_active: boolean;
-  parent_id: string;
+  parent_id: string | null;
+  user_id: string | null;
+  parent_email: string | null;
   start_date: string;
   passive_duration: number;
   sessionCount: number;
@@ -144,6 +146,8 @@ const PractitionerDashboard = () => {
           current_phase: c.current_phase,
           is_active: c.is_active,
           parent_id: c.parent_id,
+          user_id: c.user_id,
+          parent_email: c.parent_email,
           start_date: c.start_date,
           passive_duration: c.passive_duration,
           sessionCount: passiveSessions.length,
@@ -184,8 +188,8 @@ const PractitionerDashboard = () => {
 
   // Add client handler
   const handleAddClient = async () => {
-    if (!addForm.first_name || !addForm.last_name || !addForm.parent_email) {
-      toast({ title: "נא למלא את כל השדות", variant: "destructive" });
+    if (!addForm.first_name || !addForm.last_name) {
+      toast({ title: "נא למלא שם פרטי ושם משפחה", variant: "destructive" });
       return;
     }
     setAddSubmitting(true);
@@ -193,7 +197,7 @@ const PractitionerDashboard = () => {
       const { error } = await supabase.from("children").insert({
         first_name: addForm.first_name,
         last_name: addForm.last_name,
-        parent_email: addForm.parent_email,
+        parent_email: addForm.parent_email || null,
         start_date: addForm.start_date,
         passive_duration: addForm.passive_duration,
         current_phase: addForm.starting_phase,
@@ -363,6 +367,11 @@ const PractitionerDashboard = () => {
                         <h3 className="font-bold text-foreground">
                           {child.first_name} {child.last_name}
                         </h3>
+                        {child.user_id && !child.parent_id && (
+                          <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full font-bold">
+                            עצמאי
+                          </span>
+                        )}
                       </div>
 
                       <DropdownMenu>
