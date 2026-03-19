@@ -28,6 +28,7 @@ export type Database = {
           passive_duration: number
           start_date: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           consolidation_weeks?: number
@@ -42,6 +43,7 @@ export type Database = {
           passive_duration?: number
           start_date?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           consolidation_weeks?: number
@@ -56,6 +58,7 @@ export type Database = {
           passive_duration?: number
           start_date?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
