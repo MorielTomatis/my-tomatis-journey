@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Rocket, Sun, Star, Shield, Headphones, Mic } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { LogOut, Rocket, Sun, Star, Shield, Headphones, Mic, Map as MapIcon } from "lucide-react";
 
 const PHASE_LABELS: Record<number, { label: string; type: "listening_only" | "listening_and_mic" }> = {
   1: { label: "שלב אינטנסיבי", type: "listening_only" },
@@ -59,6 +60,7 @@ interface ChildCardState {
 
 const ParentView = () => {
   const { signOut } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [profiles, setProfiles] = useState<ChildProfile[]>([]);
   const [cardStates, setCardStates] = useState<Record<string, ChildCardState>>({});
@@ -349,9 +351,9 @@ const ParentView = () => {
           <span className="text-xl">🏠</span>
           <span className="text-xs font-bold">בית</span>
         </button>
-        <button className="flex flex-col items-center gap-1 text-muted-foreground">
-          <span className="text-xl">📊</span>
-          <span className="text-xs">היסטוריה</span>
+        <button onClick={() => navigate("/journey")} className="flex flex-col items-center gap-1 text-muted-foreground">
+          <MapIcon className="h-5 w-5" />
+          <span className="text-xs">מפת המסע</span>
         </button>
         <button className="flex flex-col items-center gap-1 text-muted-foreground">
           <span className="text-xl">⚙️</span>
