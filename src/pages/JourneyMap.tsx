@@ -23,31 +23,19 @@ const ICON_EMOJI: Record<string, string> = {
   shield: "🛡️",
 };
 
-// Stage assets & labels
 const stageAssets = [
   { src: iconEarCheck, label: "בדיקת הקשבה" },
   { src: iconIntensive, label: "שלב אינטנסיבי" },
-  { src: iconConsolidation, label: "שלב חיזוק והסתגלות" },
+  { src: iconConsolidation, label: "שלב של חיזוק והסתגלות" },
 ];
 
-/**
- * Phase → Series/Stage mapping:
- * Phase 1 (Intensive)     → Series 1, Stage 1 (Intensive/Headphones)
- * Phase 2 (Consolidation) → Series 1, Stage 2 (Consolidation/Shield)
- * Phase 3 (Intensive)     → Series 2, Stage 1
- * Phase 4 (Consolidation) → Series 2, Stage 2
- * Phase 5 (Intensive)     → Series 3, Stage 1
- * Phase 6 (Consolidation) → Series 3, Stage 2
- *
- * Stage 0 = Ear Check (entry), Stage 1 = Intensive, Stage 2 = Consolidation
- */
 function phaseToSeriesStage(phase: number): { series: number; stage: number } {
   const series = Math.ceil(phase / 2);
   const isIntensive = phase % 2 === 1;
   return { series, stage: isIntensive ? 1 : 2 };
 }
 
-const stageLabels = ["בדיקת הקשבה", "שלב אינטנסיבי", "שלב חיזוק והסתגלות"];
+const stageLabels = ["בדיקת הקשבה", "שלב אינטנסיבי", "שלב של חיזוק והסתגלות"];
 
 function getMotivationText(series: number, stage: number): string {
   const currentStageLabel = stageLabels[stage] || stageLabels[0];
@@ -60,8 +48,6 @@ function getMotivationText(series: number, stage: number): string {
   return "אנחנו כאן 📍 כמעט סיימנו! שומרים על המומנטום.";
 }
 
-/* ── Scenic tier SVG backgrounds (compact) ─────────────── */
-
 const TierBackground = ({ variant }: { variant: 1 | 2 | 3 }) => {
   const gradients: Record<number, [string, string]> = {
     1: ["#e0f2fe", "#bae6fd"],
@@ -73,7 +59,7 @@ const TierBackground = ({ variant }: { variant: 1 | 2 | 3 }) => {
   return (
     <svg
       className="absolute inset-0 w-full h-full"
-      viewBox="0 0 400 100"
+      viewBox="0 0 400 80"
       preserveAspectRatio="none"
       xmlns="http://www.w3.org/2000/svg"
     >
@@ -83,35 +69,33 @@ const TierBackground = ({ variant }: { variant: 1 | 2 | 3 }) => {
           <stop offset="100%" stopColor={to} />
         </linearGradient>
       </defs>
-      <rect width="400" height="100" fill={`url(#bg-${variant})`} />
+      <rect width="400" height="80" fill={`url(#bg-${variant})`} />
       {variant === 1 && (
         <>
-          <ellipse cx="80" cy="95" rx="120" ry="30" fill="#7dd3fc" opacity="0.3" />
-          <ellipse cx="300" cy="98" rx="140" ry="25" fill="#38bdf8" opacity="0.2" />
-          <polygon points="340,70 345,50 350,70" fill="#22c55e" opacity="0.5" />
-          <polygon points="60,75 65,55 70,75" fill="#22c55e" opacity="0.4" />
+          <ellipse cx="80" cy="75" rx="120" ry="20" fill="#7dd3fc" opacity="0.3" />
+          <ellipse cx="300" cy="78" rx="140" ry="18" fill="#38bdf8" opacity="0.2" />
+          <polygon points="340,55 345,38 350,55" fill="#22c55e" opacity="0.5" />
+          <polygon points="60,58 65,42 70,58" fill="#22c55e" opacity="0.4" />
         </>
       )}
       {variant === 2 && (
         <>
-          <ellipse cx="200" cy="96" rx="200" ry="22" fill="#86efac" opacity="0.3" />
-          <polygon points="150,72 155,50 160,72" fill="#22c55e" opacity="0.5" />
-          <polygon points="300,75 306,55 312,75" fill="#16a34a" opacity="0.4" />
+          <ellipse cx="200" cy="76" rx="200" ry="16" fill="#86efac" opacity="0.3" />
+          <polygon points="150,55 155,38 160,55" fill="#22c55e" opacity="0.5" />
+          <polygon points="300,58 306,42 312,58" fill="#16a34a" opacity="0.4" />
         </>
       )}
       {variant === 3 && (
         <>
-          <ellipse cx="100" cy="95" rx="150" ry="25" fill="#fcd34d" opacity="0.3" />
-          <ellipse cx="320" cy="97" rx="100" ry="20" fill="#fbbf24" opacity="0.2" />
-          <line x1="25" y1="75" x2="25" y2="45" stroke="#1e3a8a" strokeWidth="2" />
-          <polygon points="25,45 45,55 25,65" fill="#ef4444" opacity="0.7" />
+          <ellipse cx="100" cy="75" rx="150" ry="18" fill="#fcd34d" opacity="0.3" />
+          <ellipse cx="320" cy="77" rx="100" ry="14" fill="#fbbf24" opacity="0.2" />
+          <line x1="25" y1="58" x2="25" y2="35" stroke="#1e3a8a" strokeWidth="2" />
+          <polygon points="25,35 45,45 25,55" fill="#ef4444" opacity="0.7" />
         </>
       )}
     </svg>
   );
 };
-
-/* ── Stage checkpoint with custom icon ────────────────── */
 
 interface StageCheckpointProps {
   stageIndex: number;
@@ -122,18 +106,18 @@ interface StageCheckpointProps {
 const StageCheckpoint = ({ stageIndex, isActive, isPast }: StageCheckpointProps) => {
   const asset = stageAssets[stageIndex];
   return (
-    <div className="relative flex flex-col items-center gap-0.5">
+    <div className="relative flex flex-col items-center gap-0">
       {isActive && (
         <motion.div
           initial={{ y: -6, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="absolute -top-5 z-10 text-base"
+          className="absolute -top-5 z-10 text-lg"
         >
           📍
         </motion.div>
       )}
       <div
-        className={`w-11 h-11 rounded-full flex items-center justify-center border-2 transition-colors overflow-hidden ${
+        className={`w-14 h-14 rounded-full flex items-center justify-center border-2 transition-colors overflow-hidden ${
           isActive
             ? "border-accent bg-accent/20 shadow-soft ring-2 ring-accent/40"
             : isPast
@@ -141,16 +125,14 @@ const StageCheckpoint = ({ stageIndex, isActive, isPast }: StageCheckpointProps)
             : "border-border bg-card"
         }`}
       >
-        <img src={asset.src} alt={asset.label} className="w-7 h-7 object-contain" />
+        <img src={asset.src} alt={asset.label} className="w-10 h-10 object-contain" />
       </div>
-      <span className="text-[9px] font-bold text-foreground leading-tight text-center max-w-[60px]">
+      <span className="text-[11px] font-extrabold text-foreground leading-tight text-center max-w-[90px] mt-0.5">
         {asset.label}
       </span>
     </div>
   );
 };
-
-/* ── Tier row (compact) ───────────────────────────────── */
 
 interface TierProps {
   seriesNum: 1 | 2 | 3;
@@ -163,10 +145,9 @@ const Tier = ({ seriesNum, currentSeries, currentStage }: TierProps) => {
   const isCurrentSeries = currentSeries === seriesNum;
 
   return (
-    <div className="relative rounded-lg overflow-hidden" style={{ height: 100 }}>
+    <div className="relative overflow-hidden flex-1">
       <TierBackground variant={seriesNum} />
-      <div className="relative z-10 px-3 pt-1.5 pb-1 h-full flex flex-col justify-between">
-        {/* Series label row */}
+      <div className="relative z-10 px-2 py-1 h-full flex flex-col justify-between">
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-bold text-primary/70 bg-card/60 px-1.5 py-0.5 rounded-full backdrop-blur-sm">
             סדרה {seriesNum}
@@ -179,8 +160,7 @@ const Tier = ({ seriesNum, currentSeries, currentStage }: TierProps) => {
           )}
         </div>
 
-        {/* Stages path */}
-        <div className="flex items-center justify-around flex-1 pt-1">
+        <div className="flex items-center justify-around flex-1">
           {[0, 1, 2].map((si, idx) => {
             const isPast = isPastSeries || (isCurrentSeries && currentStage > si);
             const isActive = isCurrentSeries && currentStage === si;
@@ -190,7 +170,7 @@ const Tier = ({ seriesNum, currentSeries, currentStage }: TierProps) => {
                 {idx < 2 && (
                   <div className="flex items-center mx-0.5">
                     <div
-                      className={`w-5 border-t-2 border-dashed ${
+                      className={`w-4 border-t-2 border-dashed ${
                         isPast || (isCurrentSeries && currentStage > si)
                           ? "border-primary/40"
                           : "border-border"
@@ -207,8 +187,6 @@ const Tier = ({ seriesNum, currentSeries, currentStage }: TierProps) => {
     </div>
   );
 };
-
-/* ── Main page ────────────────────────────────────────── */
 
 const JourneyMap = () => {
   const { signOut } = useAuth();
@@ -263,7 +241,7 @@ const JourneyMap = () => {
       <motion.header
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-primary text-primary-foreground px-4 py-3 flex items-center justify-between shrink-0"
+        className="bg-primary text-primary-foreground px-4 py-2.5 flex items-center justify-between shrink-0"
       >
         <h1 className="text-lg font-extrabold">מפת המסע שלך</h1>
         <button onClick={signOut} className="text-primary-foreground/70 hover:text-primary-foreground transition-colors">
@@ -271,9 +249,9 @@ const JourneyMap = () => {
         </button>
       </motion.header>
 
-      {/* Profile selector (if multiple) */}
+      {/* Profile selector */}
       {profiles.length > 1 && (
-        <div className="flex gap-2 px-4 py-2 overflow-x-auto shrink-0">
+        <div className="flex gap-2 px-4 py-1.5 overflow-x-auto shrink-0">
           {profiles.map((p) => (
             <button
               key={p.id}
@@ -291,33 +269,25 @@ const JourneyMap = () => {
         </div>
       )}
 
-      {/* Compact motivation header */}
-      <div className="px-4 py-2 shrink-0">
+      {/* Compact motivation */}
+      <div className="px-4 py-1.5 shrink-0">
         <p className="text-sm font-bold text-foreground leading-snug">{motivationText}</p>
       </div>
 
-      {/* Map tiers - fill remaining space */}
-      <div className="flex-1 px-3 flex flex-col gap-2 min-h-0">
+      {/* Map tiers - zero gap, continuous scenic map */}
+      <div className="flex-1 flex flex-col min-h-0">
         {([1, 2, 3] as const).map((s) => (
-          <motion.div
-            key={s}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: s * 0.08 }}
-            className="flex-1"
-          >
-            <Tier seriesNum={s} currentSeries={currentSeries} currentStage={currentStage} />
-          </motion.div>
+          <Tier key={s} seriesNum={s} currentSeries={currentSeries} currentStage={currentStage} />
         ))}
       </div>
 
       {/* Progress bar */}
-      <div className="px-4 py-2 shrink-0">
-        <div className="flex items-center justify-between text-sm mb-1">
-          <span className="text-muted-foreground font-bold">התקדמות כוללת</span>
-          <span className="font-extrabold text-primary text-base">{progressPercent}%</span>
+      <div className="px-4 py-1.5 shrink-0">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-sm font-bold text-muted-foreground">התקדמות כוללת</span>
+          <span className="font-extrabold text-primary text-lg">{progressPercent}%</span>
         </div>
-        <div className="h-3 rounded-full bg-secondary overflow-hidden">
+        <div className="h-3.5 rounded-full bg-secondary overflow-hidden">
           <motion.div
             className="h-full rounded-full bg-accent"
             initial={{ width: 0 }}
@@ -328,7 +298,7 @@ const JourneyMap = () => {
       </div>
 
       {/* Bottom Nav */}
-      <nav className="flex justify-around py-3 border-t border-border bg-card shrink-0">
+      <nav className="flex justify-around py-2.5 border-t border-border bg-card shrink-0">
         <button
           onClick={() => navigate("/")}
           className="flex flex-col items-center gap-0.5 text-muted-foreground"
