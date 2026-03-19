@@ -556,6 +556,108 @@ const PractitionerDashboard = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* ===== EDIT CLIENT MODAL ===== */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>עריכת מטופל</DialogTitle>
+            <DialogDescription>עדכון פרטי המטופל</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold">שם פרטי</label>
+                <Input value={editForm.first_name} onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold">שם משפחה</label>
+                <Input value={editForm.last_name} onChange={(e) => setEditForm({ ...editForm, last_name: e.target.value })} />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold">אימייל מורשה</label>
+              <Input type="email" dir="ltr" value={editForm.parent_email} onChange={(e) => setEditForm({ ...editForm, parent_email: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold">סוג פרופיל</label>
+              <div className="flex gap-2">
+                {[
+                  { value: "child", label: "ילד 🚀", icon: "rocket" },
+                  { value: "adult", label: "מבוגר ☀️", icon: "sun" },
+                  { value: "partner", label: "בן/בת זוג 🛡️", icon: "shield" },
+                ].map((pt) => (
+                  <button
+                    key={pt.value}
+                    type="button"
+                    onClick={() => setEditForm({ ...editForm, profile_type: pt.value, icon: pt.icon })}
+                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors border ${
+                      editForm.profile_type === pt.value
+                        ? "bg-accent text-accent-foreground border-accent"
+                        : "bg-background border-border text-muted-foreground hover:border-accent/50"
+                    }`}
+                  >
+                    {pt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold">אייקון</label>
+              <div className="flex gap-2">
+                {[
+                  { value: "rocket", label: "🚀" },
+                  { value: "sun", label: "☀️" },
+                  { value: "star", label: "⭐" },
+                  { value: "shield", label: "🛡️" },
+                ].map((ic) => (
+                  <button
+                    key={ic.value}
+                    type="button"
+                    onClick={() => setEditForm({ ...editForm, icon: ic.value })}
+                    className={`h-10 w-10 rounded-lg flex items-center justify-center text-lg border transition-colors ${
+                      editForm.icon === ic.value
+                        ? "bg-accent text-accent-foreground border-accent"
+                        : "bg-background border-border hover:border-accent/50"
+                    }`}
+                  >
+                    {ic.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleEdit} disabled={editSubmitting} className="w-full">
+              {editSubmitting ? "שומר..." : "שמור שינויים"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ===== DELETE CONFIRMATION ===== */}
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>מחיקת מטופל</AlertDialogTitle>
+            <AlertDialogDescription>
+              האם אתה בטוח שברצונך למחוק מטופל זה?
+              <br />
+              <strong>לא ניתן לבטל פעולה זו.</strong>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleteSubmitting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteSubmitting ? "מוחק..." : "מחק"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 };
