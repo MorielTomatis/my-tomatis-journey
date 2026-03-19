@@ -348,7 +348,9 @@ const PractitionerDashboard = () => {
                   <motion.div
                     key={child.id}
                     variants={item}
-                    className="bg-card rounded-xl p-5 shadow-soft space-y-3 relative"
+                    className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative border-2 ${
+                      child.loggedToday ? "border-accent" : "border-inactive"
+                    }`}
                   >
                     {/* Top row: name + status dot + menu */}
                     <div className="flex items-start justify-between">

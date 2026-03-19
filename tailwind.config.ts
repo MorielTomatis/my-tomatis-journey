@@ -55,6 +55,7 @@ export default {
           missed: "hsl(var(--status-missed))",
           none: "hsl(var(--status-none))",
         },
+        inactive: "hsl(var(--status-none))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
