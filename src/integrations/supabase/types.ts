@@ -20,6 +20,7 @@ export type Database = {
           created_at: string
           current_phase: number
           first_name: string
+          icon: string
           id: string
           is_active: boolean
           last_name: string
@@ -35,6 +36,7 @@ export type Database = {
           created_at?: string
           current_phase?: number
           first_name: string
+          icon?: string
           id?: string
           is_active?: boolean
           last_name: string
@@ -50,6 +52,7 @@ export type Database = {
           created_at?: string
           current_phase?: number
           first_name?: string
+          icon?: string
           id?: string
           is_active?: boolean
           last_name?: string

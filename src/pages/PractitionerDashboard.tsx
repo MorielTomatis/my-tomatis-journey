@@ -30,7 +30,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, Plus, MoreVertical, Calendar, Mic, Headphones, LogOut } from "lucide-react";
+import { Search, Plus, MoreVertical, Calendar, Mic, Headphones, LogOut, Rocket, Sun, Star, Shield } from "lucide-react";
+import FamilyCreatorDialog from "@/components/FamilyCreatorDialog";
 
 const PHASE_NAMES: Record<number, string> = {
   1: "אינטנסיבי 1",
@@ -39,6 +40,10 @@ const PHASE_NAMES: Record<number, string> = {
   4: "קונסולידציה 2",
   5: "אינטנסיבי 3",
   6: "קונסולידציה 3",
+};
+
+const ICON_EMOJI: Record<string, string> = {
+  rocket: "🚀", sun: "☀️", star: "⭐", shield: "🛡️",
 };
 
 interface ChildWithStats {
@@ -52,6 +57,7 @@ interface ChildWithStats {
   parent_email: string | null;
   start_date: string;
   passive_duration: number;
+  icon: string;
   sessionCount: number;
   lastSessionDate: string | null;
   loggedToday: boolean;
@@ -76,17 +82,8 @@ const PractitionerDashboard = () => {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("active");
 
-  // Add client modal
+  // Family Creator modal
   const [addOpen, setAddOpen] = useState(false);
-  const [addForm, setAddForm] = useState({
-    first_name: "",
-    last_name: "",
-    parent_email: "",
-    start_date: new Date().toISOString().split("T")[0],
-    passive_duration: 40,
-    starting_phase: 1,
-  });
-  const [addSubmitting, setAddSubmitting] = useState(false);
 
   // Manual log modal
   const [logOpen, setLogOpen] = useState(false);
@@ -150,6 +147,7 @@ const PractitionerDashboard = () => {
           parent_email: c.parent_email,
           start_date: c.start_date,
           passive_duration: c.passive_duration,
+          icon: c.icon ?? "rocket",
           sessionCount: passiveSessions.length,
           lastSessionDate: lastSession?.date ?? null,
           loggedToday,
@@ -186,44 +184,6 @@ const PractitionerDashboard = () => {
     return "pending";
   };
 
-  // Add client handler
-  const handleAddClient = async () => {
-    if (!addForm.first_name || !addForm.last_name) {
-      toast({ title: "נא למלא שם פרטי ושם משפחה", variant: "destructive" });
-      return;
-    }
-    setAddSubmitting(true);
-    try {
-      const { error } = await supabase.from("children").insert({
-        first_name: addForm.first_name,
-        last_name: addForm.last_name,
-        parent_email: addForm.parent_email || null,
-        start_date: addForm.start_date,
-        passive_duration: addForm.passive_duration,
-        current_phase: addForm.starting_phase,
-      });
-
-      if (error) {
-        console.error("Insert error:", error);
-        throw error;
-      }
-      toast({ title: "מטופל נוסף בהצלחה ✓" });
-      setAddOpen(false);
-      setAddForm({
-        first_name: "",
-        last_name: "",
-        parent_email: "",
-        start_date: new Date().toISOString().split("T")[0],
-        passive_duration: 40,
-        starting_phase: 1,
-      });
-      await fetchChildren();
-    } catch (err: any) {
-      toast({ title: `שגיאה: ${err?.message || "שגיאה בהוספת מטופל"}`, variant: "destructive" });
-    } finally {
-      setAddSubmitting(false);
-    }
-  };
 
   // Manual log handler
   const handleManualLog = async () => {
@@ -307,7 +267,7 @@ const PractitionerDashboard = () => {
           <div className="flex items-center gap-2">
             <Button onClick={() => setAddOpen(true)} className="gap-2">
               <Plus className="h-4 w-4" />
-              הוספת מטופל חדש
+              יצירת משפחה
             </Button>
             <Button variant="ghost" size="icon" onClick={signOut} title="התנתק">
               <LogOut className="h-4 w-4" />
@@ -366,6 +326,7 @@ const PractitionerDashboard = () => {
                             }`}
                           />
                         )}
+                        <span className="text-lg">{ICON_EMOJI[child.icon] || "🚀"}</span>
                         <h3 className="font-bold text-foreground">
                           {child.first_name} {child.last_name}
                         </h3>
@@ -437,65 +398,8 @@ const PractitionerDashboard = () => {
         </div>
       </motion.div>
 
-      {/* ===== ADD CLIENT MODAL ===== */}
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>הוספת מטופל חדש</DialogTitle>
-            <DialogDescription>הזינו את פרטי המטופל וההורה</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold">שם פרטי</label>
-                <Input value={addForm.first_name} onChange={(e) => setAddForm({ ...addForm, first_name: e.target.value })} />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold">שם משפחה</label>
-                <Input value={addForm.last_name} onChange={(e) => setAddForm({ ...addForm, last_name: e.target.value })} />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-bold">אימייל הורה</label>
-              <Input type="email" dir="ltr" value={addForm.parent_email} onChange={(e) => setAddForm({ ...addForm, parent_email: e.target.value })} />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-bold">תאריך התחלה</label>
-              <Input type="date" dir="ltr" value={addForm.start_date} onChange={(e) => setAddForm({ ...addForm, start_date: e.target.value })} />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold">משך האזנה פסיבית (דקות)</label>
-                <select
-                  value={addForm.passive_duration}
-                  onChange={(e) => setAddForm({ ...addForm, passive_duration: Number(e.target.value) })}
-                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value={40}>40</option>
-                  <option value={60}>60</option>
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold">שלב התחלתי</label>
-                <select
-                  value={addForm.starting_phase}
-                  onChange={(e) => setAddForm({ ...addForm, starting_phase: Number(e.target.value) })}
-                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  {[1, 2, 3, 4, 5, 6].map((p) => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={handleAddClient} disabled={addSubmitting} className="w-full">
-              {addSubmitting ? "שומר..." : "הוסף מטופל"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* ===== FAMILY CREATOR MODAL ===== */}
+      <FamilyCreatorDialog open={addOpen} onOpenChange={setAddOpen} onCreated={fetchChildren} />
 
       {/* ===== MANUAL LOG MODAL ===== */}
       <Dialog open={logOpen} onOpenChange={setLogOpen}>
