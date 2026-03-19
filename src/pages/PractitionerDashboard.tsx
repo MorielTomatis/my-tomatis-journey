@@ -295,6 +295,112 @@ const PractitionerDashboard = () => {
     }
   };
 
+  const renderClientCard = (child: ChildWithStats, status: "logged" | "missed" | "pending") => (
+    <>
+      {/* Top row: name + status dot + menu */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-2">
+          {tab === "active" && (
+            <span
+              className={`h-2.5 w-2.5 rounded-full shrink-0 ${
+                status === "logged"
+                  ? "bg-status-logged"
+                  : status === "missed"
+                  ? "bg-status-missed"
+                  : "bg-status-none"
+              }`}
+            />
+          )}
+          <span className="text-lg">{ICON_EMOJI[child.icon] || "🚀"}</span>
+          <h3 className="font-bold text-foreground">
+            {child.first_name} {child.last_name}
+          </h3>
+          {child.user_id && !child.parent_id && (
+            <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full font-bold">
+              מבוגר אחראי
+            </span>
+          )}
+        </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="p-1 rounded-md hover:bg-muted transition-colors">
+              <MoreVertical className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem
+              onClick={() => {
+                setEditChild(child);
+                setEditForm({
+                  first_name: child.first_name,
+                  last_name: child.last_name,
+                  parent_email: child.parent_email ?? "",
+                  profile_type: child.profile_type ?? "child",
+                  icon: child.icon,
+                });
+                setEditOpen(true);
+              }}
+            >
+              ✏️ <span className="mr-2">עריכה</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                setLogChild(child);
+                setLogForm({
+                  date: today,
+                  passive_completed: true,
+                  active_completed: false,
+                  active_minutes: "",
+                });
+                setLogOpen(true);
+              }}
+            >
+              <Calendar className="h-4 w-4 ml-2" />
+              עדכון ידני
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                setResetChild(child);
+                setResetOpen(true);
+              }}
+            >
+              <span className="ml-2">🔄</span>
+              איפוס שלב
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                setDeleteChild(child);
+                setDeleteOpen(true);
+              }}
+              className="text-destructive focus:text-destructive"
+            >
+              🗑️ <span className="mr-2">מחיקה</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Phase info */}
+      <div className="space-y-1.5">
+        <span className="inline-block bg-accent/10 text-accent px-3 py-1 rounded-full text-xs font-bold">
+          {PHASE_NAMES[child.current_phase] ?? `שלב ${child.current_phase}`}
+        </span>
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <Headphones className="h-3.5 w-3.5" />
+          <span>יום {child.sessionCount} מתוך 14</span>
+        </div>
+      </div>
+
+      {/* Last session */}
+      <p className="text-xs text-muted-foreground">
+        {child.lastSessionDate
+          ? `סשן אחרון: ${new Date(child.lastSessionDate).toLocaleDateString("he-IL")}`
+          : "טרם נרשם סשן"}
+      </p>
+    </>
+  );
+
   if (loadError) {
     return (
       <main className="max-w-md mx-auto min-h-svh flex items-center justify-center px-4">
