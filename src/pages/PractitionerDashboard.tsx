@@ -47,7 +47,9 @@ interface ChildWithStats {
   last_name: string;
   current_phase: number;
   is_active: boolean;
-  parent_id: string;
+  parent_id: string | null;
+  user_id: string | null;
+  parent_email: string | null;
   start_date: string;
   passive_duration: number;
   sessionCount: number;
