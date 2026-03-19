@@ -32,11 +32,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .from("user_roles")
       .select("role")
       .eq("user_id", userId)
-      .limit(1)
-      .single();
+      .limit(1);
 
     if (error) throw error;
-    return (data?.role as "parent" | "practitioner") ?? null;
+    if (!data || data.length === 0) return null;
+    return (data[0].role as "parent" | "practitioner") ?? null;
   };
 
   useEffect(() => {
