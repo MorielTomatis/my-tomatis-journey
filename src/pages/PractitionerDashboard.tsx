@@ -160,6 +160,7 @@ const PractitionerDashboard = () => {
           start_date: c.start_date,
           passive_duration: c.passive_duration,
           icon: c.icon ?? "rocket",
+          profile_type: c.profile_type ?? "child",
           sessionCount: passiveSessions.length,
           lastSessionDate: lastSession?.date ?? null,
           loggedToday,
