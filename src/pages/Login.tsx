@@ -211,6 +211,14 @@ const Login = () => {
               : (mode === "login" ? "התחברות" : "הרשמה")}
           </Button>
         </form>
+
+        {gatekeeperMsg && (
+          <div className="bg-card p-5 rounded-xl shadow-soft text-center space-y-2">
+            <p className="text-sm font-semibold text-primary leading-relaxed">
+              {gatekeeperMsg}
+            </p>
+          </div>
+        )}
       </motion.div>
     </main>
   );
