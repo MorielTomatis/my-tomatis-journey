@@ -16,6 +16,7 @@ const Login = () => {
   const [submitting, setSubmitting] = useState(false);
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [passwordError, setPasswordError] = useState("");
+  const [gatekeeperMsg, setGatekeeperMsg] = useState("");
 
   // If already logged in, redirect
   if (!loading && user) {
@@ -27,10 +28,22 @@ const Login = () => {
     return null;
   }
 
+  const checkEmailRegistered = async (emailToCheck: string): Promise<boolean> => {
+    const { data, error } = await supabase.rpc("is_registered_client", {
+      _email: emailToCheck,
+    });
+    if (error) {
+      console.error("Gatekeeper check failed:", error);
+      return false;
+    }
+    return data === true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting) return;
     setPasswordError("");
+    setGatekeeperMsg("");
 
     if (mode === "signup" && password.length < 6) {
       setPasswordError("אנא ודאו שהסיסמה שלכם מכילה לפחות 6 תווים.");
@@ -40,6 +53,15 @@ const Login = () => {
     setSubmitting(true);
 
     try {
+      // Gatekeeper: check email exists in children table
+      const isRegistered = await checkEmailRegistered(email);
+      if (!isRegistered) {
+        setGatekeeperMsg(
+          "נראה שאתה לא רשום כמטופל אצל מוריאל. כדי להצטרף למסע, אנא שלח הודעת וואטסאפ למוריאל בטלפון: 0553185025"
+        );
+        return;
+      }
+
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email,
@@ -66,10 +88,9 @@ const Login = () => {
         .from("user_roles")
         .select("role")
         .eq("user_id", loggedUser.id)
-        .limit(1)
-        .single();
+        .limit(1);
 
-      const userRole = roleData?.role;
+      const userRole = roleData && roleData.length > 0 ? roleData[0].role : null;
       if (userRole === "practitioner") {
         navigate("/practitioner", { replace: true });
       } else {
@@ -190,6 +211,14 @@ const Login = () => {
               : (mode === "login" ? "התחברות" : "הרשמה")}
           </Button>
         </form>
+
+        {gatekeeperMsg && (
+          <div className="bg-card p-5 rounded-xl shadow-soft text-center space-y-2">
+            <p className="text-sm font-semibold text-primary leading-relaxed">
+              {gatekeeperMsg}
+            </p>
+          </div>
+        )}
       </motion.div>
     </main>
   );
