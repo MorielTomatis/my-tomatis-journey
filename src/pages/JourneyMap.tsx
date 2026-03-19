@@ -233,7 +233,11 @@ const JourneyMap = () => {
     : { series: 1, stage: 0 };
 
   const motivationText = getMotivationText(currentSeries, currentStage);
-  const progressPercent = child ? Math.round(((child.current_phase - 1) / 6) * 100) : 0;
+  // 84-day journey: 14 days × 6 phases
+  const TOTAL_JOURNEY_DAYS = 84;
+  // TODO: Replace mock with real completed days from DB
+  const totalCompletedDays = 18;
+  const progressPercent = Math.round((totalCompletedDays / TOTAL_JOURNEY_DAYS) * 100);
 
   return (
     <main className="max-w-md mx-auto h-svh flex flex-col bg-background overflow-hidden" dir="rtl">
@@ -288,11 +292,9 @@ const JourneyMap = () => {
           <span className="font-extrabold text-primary text-lg">{progressPercent}%</span>
         </div>
         <div className="h-3.5 rounded-full bg-secondary overflow-hidden">
-          <motion.div
-            className="h-full rounded-full bg-accent"
-            initial={{ width: 0 }}
-            animate={{ width: `${progressPercent}%` }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{ width: `${progressPercent}%`, backgroundColor: '#2EC4C7' }}
           />
         </div>
       </div>
