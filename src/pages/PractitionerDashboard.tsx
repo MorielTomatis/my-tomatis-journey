@@ -114,7 +114,10 @@ const PractitionerDashboard = () => {
   const [deleteChild, setDeleteChild] = useState<ChildWithStats | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
-  const today = new Date().toISOString().split("T")[0];
+  // Add member to existing family
+  const [addMemberOpen, setAddMemberOpen] = useState(false);
+  const [addMemberEmail, setAddMemberEmail] = useState("");
+  const [addMemberLastName, setAddMemberLastName] = useState("");
 
   const fetchChildren = useCallback(async () => {
     setLoading(true);
