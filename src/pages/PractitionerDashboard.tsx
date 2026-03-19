@@ -58,6 +58,7 @@ interface ChildWithStats {
   start_date: string;
   passive_duration: number;
   icon: string;
+  profile_type: string | null;
   sessionCount: number;
   lastSessionDate: string | null;
   loggedToday: boolean;
