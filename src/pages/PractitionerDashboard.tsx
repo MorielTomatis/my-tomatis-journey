@@ -188,8 +188,8 @@ const PractitionerDashboard = () => {
 
   // Add client handler
   const handleAddClient = async () => {
-    if (!addForm.first_name || !addForm.last_name || !addForm.parent_email) {
-      toast({ title: "נא למלא את כל השדות", variant: "destructive" });
+    if (!addForm.first_name || !addForm.last_name) {
+      toast({ title: "נא למלא שם פרטי ושם משפחה", variant: "destructive" });
       return;
     }
     setAddSubmitting(true);
