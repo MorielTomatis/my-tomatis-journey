@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Rocket, Sun, Star, Shield, Headphones, Mic, Map } from "lucide-react";
+import { LogOut, Rocket, Sun, Star, Shield, Headphones, Mic, Map as MapIcon } from "lucide-react";
 
 const PHASE_LABELS: Record<number, { label: string; type: "listening_only" | "listening_and_mic" }> = {
   1: { label: "שלב אינטנסיבי", type: "listening_only" },
