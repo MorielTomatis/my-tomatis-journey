@@ -249,7 +249,7 @@ const FamilyCreatorDialog = ({ open, onOpenChange, onCreated }: Props) => {
 
         <DialogFooter>
           <Button onClick={handleSave} disabled={submitting} className="w-full">
-            {submitting ? "שומר..." : `צור ${members.length} פרופילים`}
+            {submitting ? "שומר..." : "שמירת משפחה"}
           </Button>
         </DialogFooter>
       </DialogContent>
