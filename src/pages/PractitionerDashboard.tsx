@@ -147,6 +147,7 @@ const PractitionerDashboard = () => {
           parent_email: c.parent_email,
           start_date: c.start_date,
           passive_duration: c.passive_duration,
+          icon: c.icon ?? "rocket",
           sessionCount: passiveSessions.length,
           lastSessionDate: lastSession?.date ?? null,
           loggedToday,
