@@ -292,11 +292,9 @@ const JourneyMap = () => {
           <span className="font-extrabold text-primary text-lg">{progressPercent}%</span>
         </div>
         <div className="h-3.5 rounded-full bg-secondary overflow-hidden">
-          <motion.div
-            className="h-full rounded-full bg-accent"
-            initial={{ width: 0 }}
-            animate={{ width: `${progressPercent}%` }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{ width: `${progressPercent}%`, backgroundColor: '#2EC4C7' }}
           />
         </div>
       </div>
