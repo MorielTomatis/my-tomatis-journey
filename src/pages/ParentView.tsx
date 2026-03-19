@@ -351,9 +351,9 @@ const ParentView = () => {
           <span className="text-xl">🏠</span>
           <span className="text-xs font-bold">בית</span>
         </button>
-        <button className="flex flex-col items-center gap-1 text-muted-foreground">
-          <span className="text-xl">📊</span>
-          <span className="text-xs">היסטוריה</span>
+        <button onClick={() => navigate("/journey")} className="flex flex-col items-center gap-1 text-muted-foreground">
+          <MapIcon className="h-5 w-5" />
+          <span className="text-xs">מפת המסע</span>
         </button>
         <button className="flex flex-col items-center gap-1 text-muted-foreground">
           <span className="text-xl">⚙️</span>

@@ -31,6 +31,14 @@ const App = () => (
               }
             />
             <Route
+              path="/journey"
+              element={
+                <ProtectedRoute allowedRole="parent">
+                  <JourneyMap />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/practitioner"
               element={
                 <ProtectedRoute allowedRole="practitioner">
