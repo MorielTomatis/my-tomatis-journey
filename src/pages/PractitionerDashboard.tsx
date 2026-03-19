@@ -326,6 +326,7 @@ const PractitionerDashboard = () => {
                             }`}
                           />
                         )}
+                        <span className="text-lg">{ICON_EMOJI[child.icon] || "🚀"}</span>
                         <h3 className="font-bold text-foreground">
                           {child.first_name} {child.last_name}
                         </h3>
