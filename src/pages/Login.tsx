@@ -16,6 +16,7 @@ const Login = () => {
   const [submitting, setSubmitting] = useState(false);
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [passwordError, setPasswordError] = useState("");
+  const [gatekeeperMsg, setGatekeeperMsg] = useState("");
 
   // If already logged in, redirect
   if (!loading && user) {
@@ -26,8 +27,6 @@ const Login = () => {
     }
     return null;
   }
-
-  const [gatekeeperMsg, setGatekeeperMsg] = useState("");
 
   const checkEmailRegistered = async (emailToCheck: string): Promise<boolean> => {
     const { data, error } = await supabase.rpc("is_registered_client", {
