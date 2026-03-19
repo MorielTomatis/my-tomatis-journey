@@ -101,6 +101,17 @@ const PractitionerDashboard = () => {
   const [resetChild, setResetChild] = useState<ChildWithStats | null>(null);
   const [resetSubmitting, setResetSubmitting] = useState(false);
 
+  // Edit modal
+  const [editOpen, setEditOpen] = useState(false);
+  const [editChild, setEditChild] = useState<ChildWithStats | null>(null);
+  const [editForm, setEditForm] = useState({ first_name: "", last_name: "", parent_email: "", profile_type: "child", icon: "rocket" });
+  const [editSubmitting, setEditSubmitting] = useState(false);
+
+  // Delete confirmation
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteChild, setDeleteChild] = useState<ChildWithStats | null>(null);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+
   const today = new Date().toISOString().split("T")[0];
 
   const fetchChildren = useCallback(async () => {
