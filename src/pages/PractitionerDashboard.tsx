@@ -371,7 +371,7 @@ const PractitionerDashboard = () => {
                         </h3>
                         {child.user_id && !child.parent_id && (
                           <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full font-bold">
-                            עצמאי
+                            מבוגר אחראי
                           </span>
                         )}
                       </div>
