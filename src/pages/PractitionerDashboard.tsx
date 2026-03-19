@@ -42,6 +42,10 @@ const PHASE_NAMES: Record<number, string> = {
   6: "קונסולידציה 3",
 };
 
+const ICON_EMOJI: Record<string, string> = {
+  rocket: "🚀", sun: "☀️", star: "⭐", shield: "🛡️",
+};
+
 interface ChildWithStats {
   id: string;
   first_name: string;
@@ -53,6 +57,7 @@ interface ChildWithStats {
   parent_email: string | null;
   start_date: string;
   passive_duration: number;
+  icon: string;
   sessionCount: number;
   lastSessionDate: string | null;
   loggedToday: boolean;
