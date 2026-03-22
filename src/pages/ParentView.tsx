@@ -106,7 +106,7 @@ const ParentView = () => {
       const weekDates = Array.from({ length: 5 }, (_, i) => {
         const d = new Date(sunday);
         d.setDate(sunday.getDate() + i);
-        return d.toISOString().split("T")[0];
+        return toIsraelDate(d);
       });
 
       const states: Record<string, ChildCardState> = {};
