@@ -92,7 +92,7 @@ const ParentView = () => {
       const childIds = children.map((c) => c.id);
       const { data: allSessions } = await supabase
         .from("sessions")
-        .select("child_id, date, passive_completed, is_archived")
+        .select("child_id, date, passive_completed, is_archived, is_listening_done, is_active_work_done")
         .in("child_id", childIds);
 
       // Build week dates
@@ -128,12 +128,17 @@ const ParentView = () => {
           return { label: dayLabels[i], status };
         });
 
+        // Read initial button states from database
+        const listeningDone = todaySession?.is_listening_done === true;
+        const micDone = todaySession?.is_active_work_done === true;
+        const todayLogged = !!todaySession?.passive_completed;
+
         states[child.id] = {
-          todayLogged: !!todaySession,
+          todayLogged,
           phaseDayNumber: Math.min(unarchivedPassive.length + 1, 14),
           weekDays,
-          listeningDone: false,
-          micDone: false,
+          listeningDone,
+          micDone,
           micMinutes: "",
           submitting: false,
         };
@@ -156,6 +161,61 @@ const ParentView = () => {
     }));
   };
 
+  // Upsert a session row for today when a button is clicked
+  const handleButtonClick = async (child: ChildProfile, field: "is_listening_done" | "is_active_work_done") => {
+    const state = cardStates[child.id];
+    if (!state) return;
+
+    // Optimistic local update
+    if (field === "is_listening_done") {
+      updateCardState(child.id, { listeningDone: true });
+    } else {
+      updateCardState(child.id, { micDone: true });
+    }
+
+    try {
+      // Check if a session already exists for today
+      const { data: existing } = await supabase
+        .from("sessions")
+        .select("id")
+        .eq("child_id", child.id)
+        .eq("date", today)
+        .limit(1);
+
+      if (existing && existing.length > 0) {
+        // Update existing session
+        const { error } = await supabase
+          .from("sessions")
+          .update({ [field]: true, completed_at: new Date().toISOString() })
+          .eq("id", existing[0].id);
+        if (error) throw error;
+      } else {
+        // Insert new session
+        const { error } = await supabase
+          .from("sessions")
+          .insert({
+            child_id: child.id,
+            date: today,
+            [field]: true,
+            completed_at: new Date().toISOString(),
+          });
+        if (error) throw error;
+      }
+
+      toast({ title: `נשמר בהצלחה! ✓` });
+    } catch (err) {
+      console.error("Session save error:", err);
+      // Revert optimistic update
+      if (field === "is_listening_done") {
+        updateCardState(child.id, { listeningDone: false });
+      } else {
+        updateCardState(child.id, { micDone: false });
+      }
+      toast({ title: "שגיאה בשמירה", variant: "destructive" });
+    }
+  };
+
+  // Check if both are done and mark passive_completed
   const handleSubmit = async (child: ChildProfile) => {
     const state = cardStates[child.id];
     if (!state || state.submitting) return;
@@ -163,17 +223,20 @@ const ParentView = () => {
     updateCardState(child.id, { submitting: true });
 
     try {
-      const requiresMic = PHASE_LABELS[child.current_phase]?.type === "listening_and_mic";
+      const { data: existing } = await supabase
+        .from("sessions")
+        .select("id")
+        .eq("child_id", child.id)
+        .eq("date", today)
+        .limit(1);
 
-      const { error } = await supabase.from("sessions").insert({
-        child_id: child.id,
-        date: today,
-        passive_completed: true,
-        active_completed: requiresMic ? state.micDone : false,
-        active_minutes: requiresMic && state.micDone ? (state.micMinutes || null) : null,
-      });
-
-      if (error) throw error;
+      if (existing && existing.length > 0) {
+        const { error } = await supabase
+          .from("sessions")
+          .update({ passive_completed: true, active_completed: true, completed_at: new Date().toISOString() })
+          .eq("id", existing[0].id);
+        if (error) throw error;
+      }
 
       toast({ title: `נשמר בהצלחה עבור ${child.first_name}! 🎉` });
       await fetchData();
@@ -279,7 +342,7 @@ const ParentView = () => {
                     <div className="flex gap-3">
                       <motion.button
                         whileTap={!state.listeningDone ? { scale: 0.95 } : undefined}
-                        onClick={() => !state.listeningDone && updateCardState(child.id, { listeningDone: true })}
+                        onClick={() => !state.listeningDone && handleButtonClick(child, "is_listening_done")}
                         disabled={state.listeningDone}
                         className={`flex-1 rounded-xl font-bold text-sm shadow-soft transition-all text-white ${
                           state.listeningDone
@@ -295,7 +358,7 @@ const ParentView = () => {
 
                       <motion.button
                         whileTap={!state.micDone ? { scale: 0.95 } : undefined}
-                        onClick={() => !state.micDone && updateCardState(child.id, { micDone: true })}
+                        onClick={() => !state.micDone && handleButtonClick(child, "is_active_work_done")}
                         disabled={state.micDone}
                         className={`flex-1 rounded-xl font-bold text-sm shadow-soft transition-all text-white ${
                           state.micDone
