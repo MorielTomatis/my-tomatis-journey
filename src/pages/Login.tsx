@@ -53,16 +53,16 @@ const Login = () => {
     setSubmitting(true);
 
     try {
-      // Gatekeeper: check email exists in children table
-      const isRegistered = await checkEmailRegistered(email);
-      if (!isRegistered) {
-        setGatekeeperMsg(
-          "נראה שאתה לא רשום כמטופל אצל מוריאל. כדי להצטרף למסע, אנא שלח הודעת וואטסאפ למוריאל בטלפון: 0553185025"
-        );
-        return;
-      }
-
       if (mode === "signup") {
+        // Gatekeeper: only for signup
+        const isRegistered = await checkEmailRegistered(email);
+        if (!isRegistered) {
+          setGatekeeperMsg(
+            "נראה שאתה לא רשום כמטופל אצל מוריאל. כדי להצטרף למסע, אנא שלח הודעת וואטסאפ למוריאל בטלפון: 0553185025"
+          );
+          return;
+        }
+
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -77,25 +77,45 @@ const Login = () => {
         return;
       }
 
-      // Login mode
+      // Login mode — authenticate first, then check role
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
 
       const { data: { user: loggedUser } } = await supabase.auth.getUser();
       if (!loggedUser) throw new Error("No user");
 
-      const { data: roleData } = await supabase
+      const { data: roleData, error: roleError } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", loggedUser.id)
         .limit(1);
 
+      console.log("Role check for user", loggedUser.id, ":", { roleData, roleError });
+
       const userRole = roleData && roleData.length > 0 ? roleData[0].role : null;
+
       if (userRole === "practitioner") {
         navigate("/practitioner", { replace: true });
-      } else {
-        navigate("/", { replace: true });
+        return;
       }
+
+      if (userRole === "parent") {
+        navigate("/", { replace: true });
+        return;
+      }
+
+      // No role — check if registered client
+      const isRegistered = await checkEmailRegistered(email);
+      if (!isRegistered) {
+        await supabase.auth.signOut();
+        setGatekeeperMsg(
+          "נראה שאתה לא רשום כמטופל אצל מוריאל. כדי להצטרף למסע, אנא שלח הודעת וואטסאפ למוריאל בטלפון: 0553185025"
+        );
+        return;
+      }
+
+      // Registered client without role yet
+      navigate("/", { replace: true });
     } catch (err: any) {
       const description =
         mode === "login" && err?.message === "Invalid login credentials"
