@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,7 +30,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, Plus, MoreVertical, Calendar, Mic, Headphones, LogOut, Rocket, Sun, Star, Shield } from "lucide-react";
+import { Search, Plus, MoreVertical, Calendar as CalendarIcon, Mic, Headphones, LogOut, Rocket, Sun, Star, Shield } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { he } from "date-fns/locale";
 import FamilyCreatorDialog from "@/components/FamilyCreatorDialog";
 import AddMemberDialog from "@/components/AddMemberDialog";
 
@@ -120,6 +122,12 @@ const PractitionerDashboard = () => {
   const [addMemberOpen, setAddMemberOpen] = useState(false);
   const [addMemberEmail, setAddMemberEmail] = useState("");
   const [addMemberLastName, setAddMemberLastName] = useState("");
+
+  // History modal
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyChild, setHistoryChild] = useState<ChildWithStats | null>(null);
+  const [historyMonth, setHistoryMonth] = useState(new Date());
+  const [historySessions, setHistorySessions] = useState<{ date: string; is_listening_done: boolean; is_active_work_done: boolean }[]>([]);
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -242,8 +250,35 @@ const PractitionerDashboard = () => {
     return "border border-gray-200 ring-0";
   };
 
+  // Fetch history sessions when modal opens
+  useEffect(() => {
+    if (!historyOpen || !historyChild) { setHistorySessions([]); return; }
+    const fetchHistory = async () => {
+      const { data } = await supabase
+        .from("sessions")
+        .select("date, is_listening_done, is_active_work_done")
+        .eq("child_id", historyChild.id)
+        .order("date");
+      setHistorySessions(
+        (data ?? []).map((s) => ({
+          date: s.date,
+          is_listening_done: s.is_listening_done === true,
+          is_active_work_done: s.is_active_work_done === true,
+        }))
+      );
+    };
+    fetchHistory();
+  }, [historyOpen, historyChild]);
 
-  // Manual log handler
+  const historyMap = useMemo(() => {
+    const m = new Map<string, { listening: boolean; active: boolean }>();
+    historySessions.forEach((s) => {
+      m.set(s.date, { listening: s.is_listening_done, active: s.is_active_work_done });
+    });
+    return m;
+  }, [historySessions]);
+
+
   const handleManualLog = async () => {
     if (!logChild) return;
     setLogSubmitting(true);
@@ -395,7 +430,7 @@ const PractitionerDashboard = () => {
                 setLogOpen(true);
               }}
             >
-              <Calendar className="h-4 w-4 ml-2" />
+              <CalendarIcon className="h-4 w-4 ml-2" />
               עדכון ידני
             </DropdownMenuItem>
             <DropdownMenuItem
@@ -563,7 +598,8 @@ const PractitionerDashboard = () => {
                               return (
                                 <div
                                   key={child.id}
-                                  className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative ${getCardBorderClasses(child)}`}
+                                  onClick={() => { setHistoryChild(child); setHistoryMonth(new Date()); setHistoryOpen(true); }}
+                                  className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative cursor-pointer hover:shadow-md transition-shadow ${getCardBorderClasses(child)}`}
                                 >
                                   {renderClientCard(child, status)}
                                 </div>
@@ -581,7 +617,8 @@ const PractitionerDashboard = () => {
                         <motion.div
                           key={child.id}
                           variants={item}
-                          className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative ${getCardBorderClasses(child)}`}
+                          onClick={() => { setHistoryChild(child); setHistoryMonth(new Date()); setHistoryOpen(true); }}
+                          className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative cursor-pointer hover:shadow-md transition-shadow ${getCardBorderClasses(child)}`}
                         >
                           {renderClientCard(child, status)}
                         </motion.div>
@@ -787,6 +824,67 @@ const PractitionerDashboard = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* ===== HISTORY CALENDAR MODAL ===== */}
+      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+        <DialogContent className="sm:max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-right">
+              היסטוריה — {historyChild?.first_name} {historyChild?.last_name}
+            </DialogTitle>
+            <DialogDescription className="text-right">
+              לחץ על חודשים שונים לצפייה בהיסטוריית הסשנים
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center py-2">
+            <Calendar
+              mode="single"
+              month={historyMonth}
+              onMonthChange={setHistoryMonth}
+              locale={he}
+              dir="rtl"
+              className="pointer-events-auto"
+              components={{
+                DayContent: ({ date }) => {
+                  const key = date.toISOString().split("T")[0];
+                  const session = historyMap.get(key);
+                  return (
+                    <div className="flex flex-col items-center gap-0.5">
+                      <span>{date.getDate()}</span>
+                      {session && (session.listening || session.active) && (
+                        <div className="flex gap-0.5">
+                          {session.listening && (
+                            <span className="block h-1.5 w-1.5 rounded-full bg-[#40C4C4]" />
+                          )}
+                          {session.active && (
+                            <span className="block h-1.5 w-1.5 rounded-full bg-[#1E3A8A]" />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                },
+              }}
+            />
+          </div>
+          {/* Legend */}
+          <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground pb-2">
+            <div className="flex items-center gap-1.5">
+              <span className="block h-2.5 w-2.5 rounded-full bg-[#40C4C4]" />
+              <span>הקשבה</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="block h-2.5 w-2.5 rounded-full bg-[#1E3A8A]" />
+              <span>עבודה אקטיבית</span>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setHistoryOpen(false)} className="w-full">
+              סגירה
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 };
