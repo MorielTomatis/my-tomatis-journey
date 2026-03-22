@@ -281,28 +281,32 @@ const ParentView = () => {
                         whileTap={!state.listeningDone ? { scale: 0.95 } : undefined}
                         onClick={() => !state.listeningDone && updateCardState(child.id, { listeningDone: true })}
                         disabled={state.listeningDone}
-                        className={`flex-1 py-3 rounded-xl font-bold text-sm shadow-soft transition-all flex items-center justify-center gap-2 text-white ${
+                        className={`flex-1 rounded-xl font-bold text-sm shadow-soft transition-all text-white ${
                           state.listeningDone
                             ? "bg-[#40C4C4]/50 cursor-default"
                             : "bg-[#40C4C4] active:scale-95"
                         }`}
                       >
-                        <Headphones className="h-4 w-4" />
-                        {state.listeningDone ? "הקשבה ✓" : "הקשבה בוצעה"}
+                        <span className="flex flex-row items-center justify-center gap-2 p-3">
+                          <Headphones className="h-4 w-4 shrink-0" />
+                          {state.listeningDone ? "הקשבה ✓" : "הקשבה בוצעה"}
+                        </span>
                       </motion.button>
 
                       <motion.button
                         whileTap={!state.micDone ? { scale: 0.95 } : undefined}
                         onClick={() => !state.micDone && updateCardState(child.id, { micDone: true })}
                         disabled={state.micDone}
-                        className={`flex-1 py-3 rounded-xl font-bold text-sm shadow-soft transition-all flex items-center justify-center gap-2 text-white ${
+                        className={`flex-1 rounded-xl font-bold text-sm shadow-soft transition-all text-white ${
                           state.micDone
                             ? "bg-[#1E3A8A]/50 cursor-default"
                             : "bg-[#1E3A8A] active:scale-95"
                         }`}
                       >
-                        <Mic className="h-4 w-4" />
-                        {state.micDone ? "עבודה ✓" : "עבודה אקטיבית בוצעה"}
+                        <span className="flex flex-row items-center justify-center gap-2 p-3">
+                          <Mic className="h-4 w-4 shrink-0" />
+                          {state.micDone ? "עבודה ✓" : "עבודה אקטיבית בוצעה"}
+                        </span>
                       </motion.button>
                     </div>
 
