@@ -169,38 +169,44 @@ const Login = () => {
             ברוכים הבאים למסע טומטיס
           </h1>
           <p className="text-muted-foreground text-sm">
-            {mode === "login" ? "התחברו כדי להמשיך" : "צרו חשבון חדש כדי להתחיל"}
+            {mode === "forgot"
+              ? "הזינו את האימייל שלכם לאיפוס הסיסמה"
+              : mode === "login"
+                ? "התחברו כדי להמשיך"
+                : "צרו חשבון חדש כדי להתחיל"}
           </p>
         </div>
 
-        {/* Toggle */}
-        <div className="flex rounded-lg bg-muted p-1">
-          <button
-            type="button"
-            onClick={() => { setMode("login"); setPasswordError(""); }}
-            className={`flex-1 rounded-md py-2 text-sm font-bold transition-colors ${
-              mode === "login"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground"
-            }`}
-          >
-            התחברות
-          </button>
-          <button
-            type="button"
-            onClick={() => { setMode("signup"); setPasswordError(""); }}
-            className={`flex-1 rounded-md py-2 text-sm font-bold transition-colors ${
-              mode === "signup"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground"
-            }`}
-          >
-            הרשמה
-          </button>
-        </div>
+        {/* Toggle - hide in forgot mode */}
+        {mode !== "forgot" && (
+          <div className="flex rounded-lg bg-muted p-1">
+            <button
+              type="button"
+              onClick={() => { setMode("login"); setPasswordError(""); setGatekeeperMsg(""); }}
+              className={`flex-1 rounded-md py-2 text-sm font-bold transition-colors ${
+                mode === "login"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground"
+              }`}
+            >
+              התחברות
+            </button>
+            <button
+              type="button"
+              onClick={() => { setMode("signup"); setPasswordError(""); setGatekeeperMsg(""); }}
+              className={`flex-1 rounded-md py-2 text-sm font-bold transition-colors ${
+                mode === "signup"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground"
+              }`}
+            >
+              הרשמה
+            </button>
+          </div>
+        )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-card p-6 rounded-xl shadow-soft space-y-4">
+        <form onSubmit={mode === "forgot" ? handleForgotPassword : handleSubmit} className="bg-card p-6 rounded-xl shadow-soft space-y-4">
           <div className="space-y-1.5">
             <label htmlFor="email" className="text-sm font-bold text-foreground">
               אימייל
@@ -216,33 +222,56 @@ const Login = () => {
             />
           </div>
 
-          <div className="space-y-1.5">
-            <label htmlFor="password" className="text-sm font-bold text-foreground">
-              סיסמה
-            </label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              dir="ltr"
-              value={password}
-              onChange={(e) => { setPassword(e.target.value); setPasswordError(""); }}
-              required
-            />
-            {passwordError && (
-              <p className="text-sm text-destructive font-medium">{passwordError}</p>
-            )}
-          </div>
+          {mode !== "forgot" && (
+            <div className="space-y-1.5">
+              <label htmlFor="password" className="text-sm font-bold text-foreground">
+                סיסמה
+              </label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                dir="ltr"
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setPasswordError(""); }}
+                required
+              />
+              {passwordError && (
+                <p className="text-sm text-destructive font-medium">{passwordError}</p>
+              )}
+              {mode === "login" && (
+                <button
+                  type="button"
+                  onClick={() => { setMode("forgot"); setPasswordError(""); setGatekeeperMsg(""); }}
+                  className="text-xs text-primary hover:underline"
+                >
+                  שכחת סיסמה?
+                </button>
+              )}
+            </div>
+          )}
 
           <Button
             type="submit"
             disabled={submitting}
             className="w-full py-3 text-base font-bold"
           >
-            {submitting
-              ? (mode === "login" ? "מתחבר..." : "נרשם...")
-              : (mode === "login" ? "התחברות" : "הרשמה")}
+            {mode === "forgot"
+              ? (submitting ? "שולח..." : "שליחת קישור לאיפוס סיסמה")
+              : submitting
+                ? (mode === "login" ? "מתחבר..." : "נרשם...")
+                : (mode === "login" ? "התחברות" : "הרשמה")}
           </Button>
+
+          {mode === "forgot" && (
+            <button
+              type="button"
+              onClick={() => setMode("login")}
+              className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              ← חזרה להתחברות
+            </button>
+          )}
         </form>
 
         {gatekeeperMsg && (
