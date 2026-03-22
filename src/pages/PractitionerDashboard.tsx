@@ -63,6 +63,8 @@ interface ChildWithStats {
   sessionCount: number;
   lastSessionDate: string | null;
   loggedToday: boolean;
+  isListeningDone: boolean;
+  isActiveWorkDone: boolean;
 }
 
 const container = {
@@ -141,7 +143,7 @@ const PractitionerDashboard = () => {
       const { data: sessions, error: sessionsError } = childIds.length
         ? await supabase
             .from("sessions")
-            .select("child_id, date, passive_completed, is_archived")
+            .select("child_id, date, passive_completed, is_listening_done, is_active_work_done, is_archived")
             .in("child_id", childIds)
             .eq("is_archived", false)
         : { data: [], error: null };
@@ -153,6 +155,9 @@ const PractitionerDashboard = () => {
         const passiveSessions = childSessions.filter((s) => s.passive_completed);
         const lastSession = [...childSessions].sort((a, b) => b.date.localeCompare(a.date))[0];
         const loggedToday = childSessions.some((s) => s.date === today);
+        const todaySession = childSessions.find((s) => s.date === today);
+        const isListeningDone = todaySession?.is_listening_done === true;
+        const isActiveWorkDone = todaySession?.is_active_work_done === true;
 
         return {
           id: c.id,
@@ -170,6 +175,8 @@ const PractitionerDashboard = () => {
           sessionCount: passiveSessions.length,
           lastSessionDate: lastSession?.date ?? null,
           loggedToday,
+          isListeningDone,
+          isActiveWorkDone,
         };
       });
 
