@@ -63,6 +63,8 @@ interface ChildWithStats {
   sessionCount: number;
   lastSessionDate: string | null;
   loggedToday: boolean;
+  isListeningDone: boolean;
+  isActiveWorkDone: boolean;
 }
 
 const container = {
@@ -141,7 +143,7 @@ const PractitionerDashboard = () => {
       const { data: sessions, error: sessionsError } = childIds.length
         ? await supabase
             .from("sessions")
-            .select("child_id, date, passive_completed, is_archived")
+            .select("child_id, date, passive_completed, is_listening_done, is_active_work_done, is_archived")
             .in("child_id", childIds)
             .eq("is_archived", false)
         : { data: [], error: null };
@@ -153,6 +155,9 @@ const PractitionerDashboard = () => {
         const passiveSessions = childSessions.filter((s) => s.passive_completed);
         const lastSession = [...childSessions].sort((a, b) => b.date.localeCompare(a.date))[0];
         const loggedToday = childSessions.some((s) => s.date === today);
+        const todaySession = childSessions.find((s) => s.date === today);
+        const isListeningDone = todaySession?.is_listening_done === true;
+        const isActiveWorkDone = todaySession?.is_active_work_done === true;
 
         return {
           id: c.id,
@@ -170,6 +175,8 @@ const PractitionerDashboard = () => {
           sessionCount: passiveSessions.length,
           lastSessionDate: lastSession?.date ?? null,
           loggedToday,
+          isListeningDone,
+          isActiveWorkDone,
         };
       });
 
@@ -201,6 +208,19 @@ const PractitionerDashboard = () => {
     const hour = new Date().getHours();
     if (hour >= 20) return "missed";
     return "pending";
+  };
+
+  const getCardBorderClasses = (child: ChildWithStats): string => {
+    if (child.isListeningDone && child.isActiveWorkDone) {
+      return "border-2 border-[#40C4C4] ring-2 ring-[#1E3A8A] ring-offset-2 ring-offset-slate-50";
+    }
+    if (child.isListeningDone) {
+      return "border-2 border-[#40C4C4] ring-0";
+    }
+    if (child.isActiveWorkDone) {
+      return "border-2 border-[#1E3A8A] ring-0";
+    }
+    return "border border-gray-200 ring-0";
   };
 
 
@@ -524,9 +544,7 @@ const PractitionerDashboard = () => {
                               return (
                                 <div
                                   key={child.id}
-                                  className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative border-2 ${
-                                    child.loggedToday ? "border-accent" : "border-inactive"
-                                  }`}
+                                  className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative ${getCardBorderClasses(child)}`}
                                 >
                                   {renderClientCard(child, status)}
                                 </div>
@@ -544,9 +562,7 @@ const PractitionerDashboard = () => {
                         <motion.div
                           key={child.id}
                           variants={item}
-                          className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative border-2 ${
-                            child.loggedToday ? "border-accent" : "border-inactive"
-                          }`}
+                          className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative ${getCardBorderClasses(child)}`}
                         >
                           {renderClientCard(child, status)}
                         </motion.div>
