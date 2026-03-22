@@ -824,6 +824,67 @@ const PractitionerDashboard = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* ===== HISTORY CALENDAR MODAL ===== */}
+      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+        <DialogContent className="sm:max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-right">
+              היסטוריה — {historyChild?.first_name} {historyChild?.last_name}
+            </DialogTitle>
+            <DialogDescription className="text-right">
+              לחץ על חודשים שונים לצפייה בהיסטוריית הסשנים
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center py-2">
+            <Calendar
+              mode="single"
+              month={historyMonth}
+              onMonthChange={setHistoryMonth}
+              locale={he}
+              dir="rtl"
+              className="pointer-events-auto"
+              components={{
+                DayContent: ({ date }) => {
+                  const key = date.toISOString().split("T")[0];
+                  const session = historyMap.get(key);
+                  return (
+                    <div className="flex flex-col items-center gap-0.5">
+                      <span>{date.getDate()}</span>
+                      {session && (session.listening || session.active) && (
+                        <div className="flex gap-0.5">
+                          {session.listening && (
+                            <span className="block h-1.5 w-1.5 rounded-full bg-[#40C4C4]" />
+                          )}
+                          {session.active && (
+                            <span className="block h-1.5 w-1.5 rounded-full bg-[#1E3A8A]" />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                },
+              }}
+            />
+          </div>
+          {/* Legend */}
+          <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground pb-2">
+            <div className="flex items-center gap-1.5">
+              <span className="block h-2.5 w-2.5 rounded-full bg-[#40C4C4]" />
+              <span>הקשבה</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="block h-2.5 w-2.5 rounded-full bg-[#1E3A8A]" />
+              <span>עבודה אקטיבית</span>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setHistoryOpen(false)} className="w-full">
+              סגירה
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 };
