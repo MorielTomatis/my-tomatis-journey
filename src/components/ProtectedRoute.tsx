@@ -9,6 +9,15 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children, allowedRole }: ProtectedRouteProps) => {
   const { user, role, loading, error } = useAuth();
 
+  // Show loading while session OR role is still being resolved
+  if (loading) {
+    return (
+      <main className="min-h-svh flex items-center justify-center bg-background">
+        <p className="text-muted-foreground">טוען...</p>
+      </main>
+    );
+  }
+
   if (error) {
     return (
       <main className="min-h-svh flex items-center justify-center bg-background px-4">
@@ -20,24 +29,19 @@ const ProtectedRoute = ({ children, allowedRole }: ProtectedRouteProps) => {
     );
   }
 
-  if (loading) {
-    return (
-      <main className="min-h-svh flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">טוען...</p>
-      </main>
-    );
-  }
-
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRole === "practitioner" && role !== "practitioner") {
-    return <Navigate to="/" replace />;
-  }
-
+  // Role is definitively loaded here (loading is false).
+  // Redirect practitioners away from parent routes
   if (allowedRole === "parent" && role === "practitioner") {
     return <Navigate to="/practitioner" replace />;
+  }
+
+  // Redirect non-practitioners away from practitioner routes
+  if (allowedRole === "practitioner" && role !== "practitioner") {
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

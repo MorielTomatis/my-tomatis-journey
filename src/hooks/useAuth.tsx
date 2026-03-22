@@ -41,9 +41,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     let isMounted = true;
+    let activeRequest = 0;
 
     const syncAuthState = async (nextSession: Session | null) => {
       if (!isMounted) return;
+      const requestId = ++activeRequest;
 
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
@@ -52,12 +54,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (!nextSession?.user) {
           setRole(null);
           setError(null);
+          setLoading(false);
           return;
         }
 
         const userRole = await fetchRole(nextSession.user.id);
-        if (!isMounted) return;
+        if (!isMounted || requestId !== activeRequest) return;
 
+        console.log("Auth: role resolved for", nextSession.user.email, "→", userRole);
         setRole(userRole);
         setError(null);
 
@@ -68,11 +72,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (err: any) {
         console.error("Auth initialization error:", err);
-        if (!isMounted) return;
+        if (!isMounted || requestId !== activeRequest) return;
         setRole(null);
         setError(err?.message || err?.details || String(err));
       } finally {
-        if (isMounted) {
+        if (isMounted && requestId === activeRequest) {
           setLoading(false);
         }
       }
@@ -81,9 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      if (isMounted) {
-        setLoading(true);
-      }
+      if (isMounted) setLoading(true);
       void syncAuthState(nextSession);
     });
 
