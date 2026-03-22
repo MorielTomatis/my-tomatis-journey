@@ -210,6 +210,19 @@ const PractitionerDashboard = () => {
     return "pending";
   };
 
+  const getCardBorderClasses = (child: ChildWithStats): string => {
+    if (child.isListeningDone && child.isActiveWorkDone) {
+      return "border-2 border-[#40C4C4] ring-2 ring-[#1E3A8A] ring-offset-2 ring-offset-slate-50";
+    }
+    if (child.isListeningDone) {
+      return "border-2 border-[#40C4C4] ring-0";
+    }
+    if (child.isActiveWorkDone) {
+      return "border-2 border-[#1E3A8A] ring-0";
+    }
+    return "border border-gray-200 ring-0";
+  };
+
 
   // Manual log handler
   const handleManualLog = async () => {
