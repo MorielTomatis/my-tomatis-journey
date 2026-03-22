@@ -193,6 +193,25 @@ const PractitionerDashboard = () => {
 
   useEffect(() => { fetchChildren(); }, [fetchChildren]);
 
+  // Realtime subscription for sessions table
+  useEffect(() => {
+    const channel = supabase
+      .channel('sessions-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'sessions' },
+        () => {
+          console.log("Realtime session update received, refreshing...");
+          fetchChildren();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchChildren]);
+
   // Filter logic
   const filtered = children.filter((c) => {
     const isActiveTab = tab === "active" ? c.is_active : !c.is_active;
