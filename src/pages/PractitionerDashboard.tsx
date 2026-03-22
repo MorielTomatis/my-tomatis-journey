@@ -544,9 +544,7 @@ const PractitionerDashboard = () => {
                               return (
                                 <div
                                   key={child.id}
-                                  className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative border-2 ${
-                                    child.loggedToday ? "border-accent" : "border-inactive"
-                                  }`}
+                                  className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative ${getCardBorderClasses(child)}`}
                                 >
                                   {renderClientCard(child, status)}
                                 </div>
@@ -564,9 +562,7 @@ const PractitionerDashboard = () => {
                         <motion.div
                           key={child.id}
                           variants={item}
-                          className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative border-2 ${
-                            child.loggedToday ? "border-accent" : "border-inactive"
-                          }`}
+                          className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative ${getCardBorderClasses(child)}`}
                         >
                           {renderClientCard(child, status)}
                         </motion.div>
