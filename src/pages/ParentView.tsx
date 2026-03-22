@@ -67,7 +67,8 @@ const ParentView = () => {
   const [loading, setLoading] = useState(true);
   const [noProfile, setNoProfile] = useState(false);
 
-  const today = new Date().toISOString().split("T")[0];
+  const toIsraelDate = (d: Date) => d.toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
+  const today = toIsraelDate(new Date());
 
   const fetchData = useCallback(async () => {
     try {
