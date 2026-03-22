@@ -430,7 +430,7 @@ const PractitionerDashboard = () => {
                 setLogOpen(true);
               }}
             >
-              <Calendar className="h-4 w-4 ml-2" />
+              <CalendarIcon className="h-4 w-4 ml-2" />
               עדכון ידני
             </DropdownMenuItem>
             <DropdownMenuItem
