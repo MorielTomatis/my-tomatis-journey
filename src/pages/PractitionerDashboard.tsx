@@ -129,7 +129,10 @@ const PractitionerDashboard = () => {
   const [historyMonth, setHistoryMonth] = useState(new Date());
   const [historySessions, setHistorySessions] = useState<{ date: string; is_listening_done: boolean; is_active_work_done: boolean }[]>([]);
 
-  const today = new Date().toISOString().split("T")[0];
+  const toIsraelDate = (d: Date) => {
+    return d.toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
+  };
+  const today = toIsraelDate(new Date());
 
   const fetchChildren = useCallback(async () => {
     setLoading(true);
