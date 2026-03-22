@@ -342,7 +342,7 @@ const ParentView = () => {
                     <div className="flex gap-3">
                       <motion.button
                         whileTap={!state.listeningDone ? { scale: 0.95 } : undefined}
-                        onClick={() => !state.listeningDone && updateCardState(child.id, { listeningDone: true })}
+                        onClick={() => !state.listeningDone && handleButtonClick(child, "is_listening_done")}
                         disabled={state.listeningDone}
                         className={`flex-1 rounded-xl font-bold text-sm shadow-soft transition-all text-white ${
                           state.listeningDone
@@ -358,7 +358,7 @@ const ParentView = () => {
 
                       <motion.button
                         whileTap={!state.micDone ? { scale: 0.95 } : undefined}
-                        onClick={() => !state.micDone && updateCardState(child.id, { micDone: true })}
+                        onClick={() => !state.micDone && handleButtonClick(child, "is_active_work_done")}
                         disabled={state.micDone}
                         className={`flex-1 rounded-xl font-bold text-sm shadow-soft transition-all text-white ${
                           state.micDone
