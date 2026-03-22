@@ -269,63 +269,44 @@ const ParentView = () => {
                 </div>
 
                 {/* Log actions */}
-                {state.todayLogged ? (
+                {state.todayLogged && state.listeningDone && state.micDone ? (
                   <div className="text-center space-y-1 py-2">
                     <span className="text-3xl">🎉</span>
                     <p className="font-bold text-foreground">כל הכבוד! סיימנו להיום.</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {requiresMic && (
-                      <p className="text-xs text-center text-muted-foreground leading-relaxed">
-                        עבודה עם המיקרופון היא הלב של התהליך. אפילו חמש דקות ביום עושות הבדל גדול.
-                      </p>
-                    )}
+                    <div className="flex gap-3">
+                      <motion.button
+                        whileTap={!state.listeningDone ? { scale: 0.95 } : undefined}
+                        onClick={() => !state.listeningDone && updateCardState(child.id, { listeningDone: true })}
+                        disabled={state.listeningDone}
+                        className={`flex-1 py-3 rounded-xl font-bold text-sm shadow-soft transition-all flex items-center justify-center gap-2 text-white ${
+                          state.listeningDone
+                            ? "bg-[#40C4C4]/50 cursor-default"
+                            : "bg-[#40C4C4] active:scale-95"
+                        }`}
+                      >
+                        <Headphones className="h-4 w-4" />
+                        {state.listeningDone ? "הקשבה ✓" : "הקשבה בוצעה"}
+                      </motion.button>
 
-                    <motion.button
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => updateCardState(child.id, { listeningDone: !state.listeningDone })}
-                      className={`w-full py-3 rounded-xl font-bold text-base shadow-soft transition-colors flex items-center justify-center gap-2 ${
-                        state.listeningDone ? "bg-accent text-accent-foreground" : "bg-primary text-primary-foreground"
-                      }`}
-                    >
-                      <Headphones className="h-4 w-4" />
-                      האזנה פסיבית הושלמה {state.listeningDone ? "✓" : ""}
-                    </motion.button>
+                      <motion.button
+                        whileTap={!state.micDone ? { scale: 0.95 } : undefined}
+                        onClick={() => !state.micDone && updateCardState(child.id, { micDone: true })}
+                        disabled={state.micDone}
+                        className={`flex-1 py-3 rounded-xl font-bold text-sm shadow-soft transition-all flex items-center justify-center gap-2 text-white ${
+                          state.micDone
+                            ? "bg-[#1E3A8A]/50 cursor-default"
+                            : "bg-[#1E3A8A] active:scale-95"
+                        }`}
+                      >
+                        <Mic className="h-4 w-4" />
+                        {state.micDone ? "עבודה ✓" : "עבודה אקטיבית בוצעה"}
+                      </motion.button>
+                    </div>
 
-                    {requiresMic && (
-                      <>
-                        <motion.button
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => updateCardState(child.id, { micDone: !state.micDone })}
-                          className={`w-full py-3 rounded-xl font-bold text-sm shadow-soft transition-colors flex items-center justify-center gap-2 ${
-                            state.micDone ? "bg-accent text-accent-foreground" : "bg-primary text-primary-foreground"
-                          }`}
-                        >
-                          <Mic className="h-4 w-4" />
-                          עבודה פעילה עם המיקרופון {state.micDone ? "✓" : ""}
-                        </motion.button>
-
-                        <div className="flex items-center gap-3 bg-muted/50 p-3 rounded-xl">
-                          <label className="text-sm font-bold text-foreground whitespace-nowrap">כמה דקות?</label>
-                          <input
-                            type="number"
-                            min={0}
-                            max={120}
-                            value={state.micMinutes}
-                            onChange={(e) =>
-                              updateCardState(child.id, {
-                                micMinutes: e.target.value === "" ? "" : Number(e.target.value),
-                              })
-                            }
-                            placeholder="0"
-                            className="w-20 text-center bg-background border border-border rounded-lg py-2 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                          />
-                        </div>
-                      </>
-                    )}
-
-                    {state.listeningDone && (
+                    {state.listeningDone && state.micDone && !state.todayLogged && (
                       <motion.button
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -354,10 +335,6 @@ const ParentView = () => {
         <button onClick={() => navigate("/journey")} className="flex flex-col items-center gap-1 text-muted-foreground">
           <MapIcon className="h-5 w-5" />
           <span className="text-xs">מפת המסע</span>
-        </button>
-        <button className="flex flex-col items-center gap-1 text-muted-foreground">
-          <span className="text-xl">⚙️</span>
-          <span className="text-xs">הגדרות</span>
         </button>
       </nav>
     </main>
