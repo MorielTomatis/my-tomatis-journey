@@ -39,6 +39,23 @@ const Login = () => {
     return data === true;
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (submitting || !email) return;
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast({ title: "נשלח אליך אימייל עם קישור לאיפוס הסיסמה", description: "אנא בדוק את תיבת הדואר שלך." });
+    } catch (err: any) {
+      toast({ title: "שגיאה בשליחת קישור", description: err?.message || "אנא נסה שנית", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting) return;
@@ -54,7 +71,6 @@ const Login = () => {
 
     try {
       if (mode === "signup") {
-        // Gatekeeper: only for signup
         const isRegistered = await checkEmailRegistered(email);
         if (!isRegistered) {
           setGatekeeperMsg(
@@ -77,7 +93,6 @@ const Login = () => {
         return;
       }
 
-      // Login mode — authenticate first, then check role
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
 
@@ -104,7 +119,6 @@ const Login = () => {
         return;
       }
 
-      // No role — check if registered client
       const isRegistered = await checkEmailRegistered(email);
       if (!isRegistered) {
         await supabase.auth.signOut();
@@ -114,7 +128,6 @@ const Login = () => {
         return;
       }
 
-      // Registered client without role yet
       navigate("/", { replace: true });
     } catch (err: any) {
       const description =
