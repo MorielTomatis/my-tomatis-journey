@@ -73,30 +73,39 @@ export type Database = {
           active_completed: boolean
           active_minutes: number | null
           child_id: string
+          completed_at: string | null
           created_at: string
           date: string
           id: string
+          is_active_work_done: boolean | null
           is_archived: boolean
+          is_listening_done: boolean | null
           passive_completed: boolean
         }
         Insert: {
           active_completed?: boolean
           active_minutes?: number | null
           child_id: string
+          completed_at?: string | null
           created_at?: string
           date?: string
           id?: string
+          is_active_work_done?: boolean | null
           is_archived?: boolean
+          is_listening_done?: boolean | null
           passive_completed?: boolean
         }
         Update: {
           active_completed?: boolean
           active_minutes?: number | null
           child_id?: string
+          completed_at?: string | null
           created_at?: string
           date?: string
           id?: string
+          is_active_work_done?: boolean | null
           is_archived?: boolean
+          is_listening_done?: boolean | null
           passive_completed?: boolean
         }
         Relationships: [
