@@ -7,22 +7,20 @@ interface ClientCardProps {
 }
 
 const ClientCard = ({ name, isListeningDone, isActiveWorkDone }: ClientCardProps) => {
-  let borderStyles = "border-gray-200 border-2";
-  let ringStyles = "";
+  let borderStyles = "border border-gray-200 ring-0";
 
   if (isListeningDone && isActiveWorkDone) {
-    borderStyles = "border-[#40C4C4] border-2";
-    ringStyles = "ring-2 ring-[#1E3A8A] ring-offset-2 ring-offset-slate-50";
+    borderStyles = "border-2 border-[#40C4C4] ring-2 ring-[#1E3A8A] ring-offset-2 ring-offset-slate-50";
   } else if (isListeningDone) {
-    borderStyles = "border-[#40C4C4] border-2";
+    borderStyles = "border-2 border-[#40C4C4] ring-0";
   } else if (isActiveWorkDone) {
-    borderStyles = "border-[#1E3A8A] border-2";
+    borderStyles = "border-2 border-[#1E3A8A] ring-0";
   }
 
   return (
     <div
       dir="rtl"
-      className={`flex items-center gap-3 rounded-xl bg-white p-3 shadow-sm ${borderStyles} ${ringStyles}`}
+      className={`flex items-center gap-3 rounded-xl bg-white p-3 shadow-sm ${borderStyles}`}
     >
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
         <span className="text-lg">👤</span>
