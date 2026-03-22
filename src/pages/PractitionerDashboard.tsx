@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,7 +30,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, Plus, MoreVertical, Calendar, Mic, Headphones, LogOut, Rocket, Sun, Star, Shield } from "lucide-react";
+import { Search, Plus, MoreVertical, Calendar as CalendarIcon, Mic, Headphones, LogOut, Rocket, Sun, Star, Shield } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { he } from "date-fns/locale";
 import FamilyCreatorDialog from "@/components/FamilyCreatorDialog";
 import AddMemberDialog from "@/components/AddMemberDialog";
 
