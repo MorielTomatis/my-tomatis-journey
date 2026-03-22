@@ -598,7 +598,8 @@ const PractitionerDashboard = () => {
                               return (
                                 <div
                                   key={child.id}
-                                  className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative ${getCardBorderClasses(child)}`}
+                                  onClick={() => { setHistoryChild(child); setHistoryMonth(new Date()); setHistoryOpen(true); }}
+                                  className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative cursor-pointer hover:shadow-md transition-shadow ${getCardBorderClasses(child)}`}
                                 >
                                   {renderClientCard(child, status)}
                                 </div>
@@ -616,7 +617,8 @@ const PractitionerDashboard = () => {
                         <motion.div
                           key={child.id}
                           variants={item}
-                          className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative ${getCardBorderClasses(child)}`}
+                          onClick={() => { setHistoryChild(child); setHistoryMonth(new Date()); setHistoryOpen(true); }}
+                          className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative cursor-pointer hover:shadow-md transition-shadow ${getCardBorderClasses(child)}`}
                         >
                           {renderClientCard(child, status)}
                         </motion.div>
