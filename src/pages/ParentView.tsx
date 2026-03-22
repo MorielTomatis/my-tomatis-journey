@@ -161,26 +161,34 @@ const ParentView = () => {
     }));
   };
 
+  const formatDatabaseError = (err: unknown) => {
+    if (typeof err === "object" && err !== null) {
+      const dbError = err as { message?: string; details?: string; hint?: string; code?: string };
+      return [dbError.message, dbError.details, dbError.hint, dbError.code]
+        .filter(Boolean)
+        .join(" | ");
+    }
+
+    return String(err);
+  };
+
   // Upsert a session row for today when a button is clicked
   const handleButtonClick = async (child: ChildProfile, field: "is_listening_done" | "is_active_work_done") => {
     const state = cardStates[child.id];
-    if (!state) return;
+    if (!state || state.submitting) return;
 
-    // Optimistic local update
-    if (field === "is_listening_done") {
-      updateCardState(child.id, { listeningDone: true });
-    } else {
-      updateCardState(child.id, { micDone: true });
-    }
+    updateCardState(child.id, { submitting: true });
 
     try {
       // Check if a session already exists for today
-      const { data: existing } = await supabase
+      const { data: existing, error: fetchError } = await supabase
         .from("sessions")
         .select("id")
         .eq("child_id", child.id)
         .eq("date", today)
         .limit(1);
+
+      if (fetchError) throw fetchError;
 
       if (existing && existing.length > 0) {
         // Update existing session
@@ -202,16 +210,20 @@ const ParentView = () => {
         if (error) throw error;
       }
 
+      await fetchData();
+
       toast({ title: `נשמר בהצלחה! ✓` });
     } catch (err) {
-      console.error("Session save error:", err);
-      // Revert optimistic update
-      if (field === "is_listening_done") {
-        updateCardState(child.id, { listeningDone: false });
-      } else {
-        updateCardState(child.id, { micDone: false });
-      }
-      toast({ title: "שגיאה בשמירה", variant: "destructive" });
+      const errorMessage = formatDatabaseError(err);
+      console.error("Session save error:", {
+        childId: child.id,
+        date: today,
+        field,
+        error: err,
+      });
+      toast({ title: "שגיאה בשמירה", description: errorMessage, variant: "destructive" });
+    } finally {
+      updateCardState(child.id, { submitting: false });
     }
   };
 
@@ -223,12 +235,14 @@ const ParentView = () => {
     updateCardState(child.id, { submitting: true });
 
     try {
-      const { data: existing } = await supabase
+      const { data: existing, error: fetchError } = await supabase
         .from("sessions")
         .select("id")
         .eq("child_id", child.id)
         .eq("date", today)
         .limit(1);
+
+      if (fetchError) throw fetchError;
 
       if (existing && existing.length > 0) {
         const { error } = await supabase
@@ -236,12 +250,31 @@ const ParentView = () => {
           .update({ passive_completed: true, active_completed: true, completed_at: new Date().toISOString() })
           .eq("id", existing[0].id);
         if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("sessions")
+          .insert({
+            child_id: child.id,
+            date: today,
+            passive_completed: true,
+            active_completed: true,
+            completed_at: new Date().toISOString(),
+            is_listening_done: true,
+            is_active_work_done: true,
+          });
+        if (error) throw error;
       }
 
       toast({ title: `נשמר בהצלחה עבור ${child.first_name}! 🎉` });
       await fetchData();
-    } catch {
-      toast({ title: "שגיאה בשמירה", variant: "destructive" });
+    } catch (err) {
+      const errorMessage = formatDatabaseError(err);
+      console.error("Session completion error:", {
+        childId: child.id,
+        date: today,
+        error: err,
+      });
+      toast({ title: "שגיאה בשמירה", description: errorMessage, variant: "destructive" });
     } finally {
       updateCardState(child.id, { submitting: false });
     }
@@ -343,7 +376,7 @@ const ParentView = () => {
                       <motion.button
                         whileTap={!state.listeningDone ? { scale: 0.95 } : undefined}
                         onClick={() => !state.listeningDone && handleButtonClick(child, "is_listening_done")}
-                        disabled={state.listeningDone}
+                        disabled={state.listeningDone || state.submitting}
                         className={`flex-1 rounded-xl font-bold text-sm shadow-soft transition-all text-white ${
                           state.listeningDone
                             ? "bg-[#40C4C4]/50 cursor-default"
@@ -352,14 +385,14 @@ const ParentView = () => {
                       >
                         <span className="flex flex-row items-center justify-center gap-2 p-3">
                           <Headphones className="h-4 w-4 shrink-0" />
-                          {state.listeningDone ? "הקשבה ✓" : "הקשבה בוצעה"}
+                          {state.submitting && !state.listeningDone ? "שומר..." : state.listeningDone ? "הקשבה ✓" : "הקשבה בוצעה"}
                         </span>
                       </motion.button>
 
                       <motion.button
                         whileTap={!state.micDone ? { scale: 0.95 } : undefined}
                         onClick={() => !state.micDone && handleButtonClick(child, "is_active_work_done")}
-                        disabled={state.micDone}
+                        disabled={state.micDone || state.submitting}
                         className={`flex-1 rounded-xl font-bold text-sm shadow-soft transition-all text-white ${
                           state.micDone
                             ? "bg-[#1E3A8A]/50 cursor-default"
@@ -368,7 +401,7 @@ const ParentView = () => {
                       >
                         <span className="flex flex-row items-center justify-center gap-2 p-3">
                           <Mic className="h-4 w-4 shrink-0" />
-                          {state.micDone ? "עבודה ✓" : "עבודה אקטיבית בוצעה"}
+                          {state.submitting && !state.micDone ? "שומר..." : state.micDone ? "עבודה ✓" : "עבודה אקטיבית בוצעה"}
                         </span>
                       </motion.button>
                     </div>
