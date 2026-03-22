@@ -250,8 +250,35 @@ const PractitionerDashboard = () => {
     return "border border-gray-200 ring-0";
   };
 
+  // Fetch history sessions when modal opens
+  useEffect(() => {
+    if (!historyOpen || !historyChild) { setHistorySessions([]); return; }
+    const fetchHistory = async () => {
+      const { data } = await supabase
+        .from("sessions")
+        .select("date, is_listening_done, is_active_work_done")
+        .eq("child_id", historyChild.id)
+        .order("date");
+      setHistorySessions(
+        (data ?? []).map((s) => ({
+          date: s.date,
+          is_listening_done: s.is_listening_done === true,
+          is_active_work_done: s.is_active_work_done === true,
+        }))
+      );
+    };
+    fetchHistory();
+  }, [historyOpen, historyChild]);
 
-  // Manual log handler
+  const historyMap = useMemo(() => {
+    const m = new Map<string, { listening: boolean; active: boolean }>();
+    historySessions.forEach((s) => {
+      m.set(s.date, { listening: s.is_listening_done, active: s.is_active_work_done });
+    });
+    return m;
+  }, [historySessions]);
+
+
   const handleManualLog = async () => {
     if (!logChild) return;
     setLogSubmitting(true);
