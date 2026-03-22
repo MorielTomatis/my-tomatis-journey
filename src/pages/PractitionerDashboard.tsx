@@ -129,7 +129,10 @@ const PractitionerDashboard = () => {
   const [historyMonth, setHistoryMonth] = useState(new Date());
   const [historySessions, setHistorySessions] = useState<{ date: string; is_listening_done: boolean; is_active_work_done: boolean }[]>([]);
 
-  const today = new Date().toISOString().split("T")[0];
+  const toIsraelDate = (d: Date) => {
+    return d.toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
+  };
+  const today = toIsraelDate(new Date());
 
   const fetchChildren = useCallback(async () => {
     setLoading(true);
@@ -846,18 +849,18 @@ const PractitionerDashboard = () => {
               className="pointer-events-auto"
               components={{
                 DayContent: ({ date }) => {
-                  const key = date.toISOString().split("T")[0];
+                  const key = toIsraelDate(date);
                   const session = historyMap.get(key);
                   return (
-                    <div className="flex flex-col items-center gap-0.5">
+                    <div className="relative flex flex-col items-center gap-0.5">
                       <span>{date.getDate()}</span>
                       {session && (session.listening || session.active) && (
-                        <div className="flex gap-0.5">
+                        <div className="flex gap-0.5 relative z-10">
                           {session.listening && (
-                            <span className="block h-1.5 w-1.5 rounded-full bg-[#40C4C4]" />
+                            <span className="block h-2 w-2 rounded-full bg-[#40C4C4] shadow-sm" />
                           )}
                           {session.active && (
-                            <span className="block h-1.5 w-1.5 rounded-full bg-[#1E3A8A]" />
+                            <span className="block h-2 w-2 rounded-full bg-[#1E3A8A] shadow-sm" />
                           )}
                         </div>
                       )}

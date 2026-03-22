@@ -67,7 +67,8 @@ const ParentView = () => {
   const [loading, setLoading] = useState(true);
   const [noProfile, setNoProfile] = useState(false);
 
-  const today = new Date().toISOString().split("T")[0];
+  const toIsraelDate = (d: Date) => d.toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
+  const today = toIsraelDate(new Date());
 
   const fetchData = useCallback(async () => {
     try {
@@ -105,7 +106,7 @@ const ParentView = () => {
       const weekDates = Array.from({ length: 5 }, (_, i) => {
         const d = new Date(sunday);
         d.setDate(sunday.getDate() + i);
-        return d.toISOString().split("T")[0];
+        return toIsraelDate(d);
       });
 
       const states: Record<string, ChildCardState> = {};
