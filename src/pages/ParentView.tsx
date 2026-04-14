@@ -56,6 +56,8 @@ interface ChildCardState {
   micDone: boolean;
   micMinutes: number | "";
   submitting: boolean;
+  showMicInput: boolean;
+  activeMinutesLogged: number | null;
 }
 
 const ParentView = () => {
