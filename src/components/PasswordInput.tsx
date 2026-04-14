@@ -16,13 +16,13 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
           {...props}
           ref={ref}
           type={visible ? "text" : "password"}
-          className={cn("pe-10", className)}
+          className={cn("pr-10", className)}
         />
         <button
           type="button"
           tabIndex={-1}
           onClick={() => setVisible((v) => !v)}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
           aria-label={visible ? "הסתר סיסמה" : "הצג סיסמה"}
         >
           {visible ? <EyeOff size={18} /> : <Eye size={18} />}
