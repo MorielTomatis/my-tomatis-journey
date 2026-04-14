@@ -893,6 +893,13 @@ const PractitionerDashboard = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* ===== YEARLY HEATMAP MODAL ===== */}
+      <YearlyHeatmapModal
+        open={heatmapOpen}
+        onOpenChange={setHeatmapOpen}
+        childId={heatmapChild?.id ?? null}
+        childName={heatmapChild ? `${heatmapChild.first_name} ${heatmapChild.last_name}` : ""}
+      />
     </main>
   );
 };
