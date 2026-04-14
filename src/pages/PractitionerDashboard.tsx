@@ -292,12 +292,14 @@ const PractitionerDashboard = () => {
     setLogSubmitting(true);
     try {
       const { error } = await supabase.from("sessions").insert({
-        child_id: logChild.id,
-        date: logForm.date,
-        passive_completed: logForm.passive_completed,
-        active_completed: logForm.active_completed,
-        active_minutes: logForm.active_completed && logForm.active_minutes ? Number(logForm.active_minutes) : null,
-      });
+  child_id: logChild.id,
+  date: logForm.date,
+  passive_completed: logForm.passive_completed,
+  active_completed: logForm.active_completed,
+  active_minutes: logForm.active_completed && logForm.active_minutes ? Number(logForm.active_minutes) : null,
+  is_listening_done: logForm.passive_completed,
+  is_active_work_done: logForm.active_completed,
+});
       if (error) throw error;
 
       toast({ title: "עדכון ידני נשמר ✓" });
