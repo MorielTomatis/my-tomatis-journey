@@ -531,7 +531,12 @@ const PractitionerDashboard = () => {
           </div>
         </motion.div>
 
-        {/* Client Grid */}
+        {/* Client Grid or Guide Manager */}
+        {tab === "guide" ? (
+          <div className="flex-1 overflow-y-auto pb-4">
+            <ResourceManager />
+          </div>
+        ) : (
         <div className="flex-1 overflow-y-auto">
           {filtered.length === 0 ? (
             <motion.div variants={item} className="text-center py-16 text-muted-foreground">
