@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,13 +31,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Search, Plus, MoreVertical, Calendar as CalendarIcon, Mic, Headphones, LogOut, Rocket, Sun, Star, Shield, List } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Calendar } from "@/components/ui/calendar";
-import { he } from "date-fns/locale";
 import FamilyCreatorDialog from "@/components/FamilyCreatorDialog";
 import AddMemberDialog from "@/components/AddMemberDialog";
 import YearlyHeatmapModal from "@/components/YearlyHeatmapModal";
+import SessionLogModal from "@/components/SessionLogModal";
+import HistoryCalendarModal from "@/components/HistoryCalendarModal";
 
 const PHASE_NAMES: Record<number, string> = {
   1: "סדרה 1 · שלב אינטנסיבי",
@@ -126,11 +124,9 @@ const PractitionerDashboard = () => {
   const [addMemberEmail, setAddMemberEmail] = useState("");
   const [addMemberLastName, setAddMemberLastName] = useState("");
 
-  // History modal (legacy month calendar)
+  // History modal
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyChild, setHistoryChild] = useState<ChildWithStats | null>(null);
-  const [historyMonth, setHistoryMonth] = useState(new Date());
-  const [historySessions, setHistorySessions] = useState<{ date: string; is_listening_done: boolean; is_active_work_done: boolean }[]>([]);
 
   // Yearly heatmap modal
   const [heatmapOpen, setHeatmapOpen] = useState(false);
@@ -139,8 +135,6 @@ const PractitionerDashboard = () => {
   // Session log modal
   const [sessionLogOpen, setSessionLogOpen] = useState(false);
   const [sessionLogChild, setSessionLogChild] = useState<ChildWithStats | null>(null);
-  const [sessionLogData, setSessionLogData] = useState<{ date: string; is_listening_done: boolean; is_active_work_done: boolean; active_minutes: number | null }[]>([]);
-  const [sessionLogLoading, setSessionLogLoading] = useState(false);
 
   const toIsraelDate = (d: Date) => {
     return d.toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
@@ -266,58 +260,7 @@ const PractitionerDashboard = () => {
     return "border border-gray-200 ring-0";
   };
 
-  // Fetch history sessions when modal opens
-  useEffect(() => {
-    if (!historyOpen || !historyChild) { setHistorySessions([]); return; }
-    const fetchHistory = async () => {
-      const { data } = await supabase
-        .from("sessions")
-        .select("date, is_listening_done, is_active_work_done")
-        .eq("child_id", historyChild.id)
-        .order("date");
-      setHistorySessions(
-        (data ?? []).map((s) => ({
-          date: s.date,
-          is_listening_done: s.is_listening_done === true,
-          is_active_work_done: s.is_active_work_done === true,
-        }))
-      );
-    };
-    fetchHistory();
-  }, [historyOpen, historyChild]);
-
-  const historyMap = useMemo(() => {
-    const m = new Map<string, { listening: boolean; active: boolean }>();
-    historySessions.forEach((s) => {
-      m.set(s.date, { listening: s.is_listening_done, active: s.is_active_work_done });
-    });
-    return m;
-  }, [historySessions]);
-
-  // Fetch session log data
-  useEffect(() => {
-    if (!sessionLogOpen || !sessionLogChild) { setSessionLogData([]); return; }
-    const fetchLog = async () => {
-      setSessionLogLoading(true);
-      const { data } = await supabase
-        .from("sessions")
-        .select("date, is_listening_done, is_active_work_done, active_minutes")
-        .eq("child_id", sessionLogChild.id)
-        .order("date", { ascending: false });
-      setSessionLogData(
-        (data ?? []).map((s) => ({
-          date: s.date,
-          is_listening_done: s.is_listening_done === true,
-          is_active_work_done: s.is_active_work_done === true,
-          active_minutes: s.active_minutes,
-        }))
-      );
-      setSessionLogLoading(false);
-    };
-    fetchLog();
-  }, [sessionLogOpen, sessionLogChild]);
-
-
+  const handleManualLog = async () => {
     if (!logChild) return;
     setLogSubmitting(true);
     try {
@@ -876,65 +819,12 @@ const PractitionerDashboard = () => {
       </AlertDialog>
 
       {/* ===== HISTORY CALENDAR MODAL ===== */}
-      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-        <DialogContent className="sm:max-w-md" dir="rtl">
-          <DialogHeader>
-            <DialogTitle className="text-right">
-              היסטוריה — {historyChild?.first_name} {historyChild?.last_name}
-            </DialogTitle>
-            <DialogDescription className="text-right">
-              לחץ על חודשים שונים לצפייה בהיסטוריית הסשנים
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-center py-2">
-            <Calendar
-              mode="single"
-              month={historyMonth}
-              onMonthChange={setHistoryMonth}
-              locale={he}
-              dir="rtl"
-              className="pointer-events-auto"
-              components={{
-                DayContent: ({ date }) => {
-                  const key = toIsraelDate(date);
-                  const session = historyMap.get(key);
-                  return (
-                    <div className="relative flex flex-col items-center gap-0.5">
-                      <span>{date.getDate()}</span>
-                      {session && (session.listening || session.active) && (
-                        <div className="flex gap-0.5 relative z-10">
-                          {session.listening && (
-                            <span className="block h-2 w-2 rounded-full bg-[#40C4C4] shadow-sm" />
-                          )}
-                          {session.active && (
-                            <span className="block h-2 w-2 rounded-full bg-[#1E3A8A] shadow-sm" />
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                },
-              }}
-            />
-          </div>
-          {/* Legend */}
-          <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground pb-2">
-            <div className="flex items-center gap-1.5">
-              <span className="block h-2.5 w-2.5 rounded-full bg-[#40C4C4]" />
-              <span>הקשבה</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="block h-2.5 w-2.5 rounded-full bg-[#1E3A8A]" />
-              <span>עבודה אקטיבית</span>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setHistoryOpen(false)} className="w-full">
-              סגירה
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <HistoryCalendarModal
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        childId={historyChild?.id ?? null}
+        childName={historyChild ? `${historyChild.first_name} ${historyChild.last_name}` : ""}
+      />
       {/* ===== YEARLY HEATMAP MODAL ===== */}
       <YearlyHeatmapModal
         open={heatmapOpen}
@@ -944,49 +834,12 @@ const PractitionerDashboard = () => {
       />
 
       {/* ===== SESSION LOG MODAL ===== */}
-      <Dialog open={sessionLogOpen} onOpenChange={setSessionLogOpen}>
-        <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col" dir="rtl">
-          <DialogHeader>
-            <DialogTitle className="text-right">
-              יומן סשנים — {sessionLogChild?.first_name} {sessionLogChild?.last_name}
-            </DialogTitle>
-            <DialogDescription className="text-right">
-              כל הסשנים שנרשמו עבור מטופל זה
-            </DialogDescription>
-          </DialogHeader>
-          <ScrollArea className="flex-1 min-h-0">
-            {sessionLogLoading ? (
-              <p className="text-center text-muted-foreground py-8">טוען...</p>
-            ) : sessionLogData.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">אין סשנים להצגה</p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-right">תאריך</TableHead>
-                    <TableHead className="text-center">הקשבה</TableHead>
-                    <TableHead className="text-center">עבודה אקטיבית</TableHead>
-                    <TableHead className="text-center">דקות</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sessionLogData.map((s, i) => {
-                    const [y, m, d] = s.date.split("-");
-                    return (
-                      <TableRow key={i}>
-                        <TableCell className="text-right font-medium">{`${d}.${m}.${y}`}</TableCell>
-                        <TableCell className="text-center">{s.is_listening_done ? <span className="text-[#40C4C4] font-bold">✓</span> : <span className="text-muted-foreground">—</span>}</TableCell>
-                        <TableCell className="text-center">{s.is_active_work_done ? <span className="text-[#1E3A8A] font-bold">✓</span> : <span className="text-muted-foreground">—</span>}</TableCell>
-                        <TableCell className="text-center">{s.active_minutes != null ? s.active_minutes : <span className="text-muted-foreground">—</span>}</TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            )}
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
+      <SessionLogModal
+        open={sessionLogOpen}
+        onOpenChange={setSessionLogOpen}
+        childId={sessionLogChild?.id ?? null}
+        childName={sessionLogChild ? `${sessionLogChild.first_name} ${sessionLogChild.last_name}` : ""}
+      />
     </main>
   );
 };
