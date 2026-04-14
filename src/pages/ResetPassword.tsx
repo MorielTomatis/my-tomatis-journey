@@ -15,12 +15,26 @@ const ResetPassword = () => {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // Listen for the PASSWORD_RECOVERY event from the email link
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
+    // Check if the URL contains a recovery token (mobile email link)
+    const hash = window.location.hash;
+    if (hash && hash.includes("type=recovery")) {
+      setReady(true);
+      return;
+    }
+
+    // Also check for access_token in hash (Supabase v2 format)
+    if (hash && hash.includes("access_token")) {
+      setReady(true);
+      return;
+    }
+
+    // Fallback: listen for the PASSWORD_RECOVERY auth event
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || (session && hash.includes("type=recovery"))) {
         setReady(true);
       }
     });
+
     return () => subscription.unsubscribe();
   }, []);
 
