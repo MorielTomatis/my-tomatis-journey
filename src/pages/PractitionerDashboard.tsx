@@ -260,8 +260,7 @@ const PractitionerDashboard = () => {
     return "border border-gray-200 ring-0";
   };
 
-
-
+  const handleManualLog = async () => {
     if (!logChild) return;
     setLogSubmitting(true);
     try {
