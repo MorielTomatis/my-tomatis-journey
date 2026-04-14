@@ -35,6 +35,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { he } from "date-fns/locale";
 import FamilyCreatorDialog from "@/components/FamilyCreatorDialog";
 import AddMemberDialog from "@/components/AddMemberDialog";
+import YearlyHeatmapModal from "@/components/YearlyHeatmapModal";
 
 const PHASE_NAMES: Record<number, string> = {
   1: "סדרה 1 · שלב אינטנסיבי",
@@ -123,11 +124,15 @@ const PractitionerDashboard = () => {
   const [addMemberEmail, setAddMemberEmail] = useState("");
   const [addMemberLastName, setAddMemberLastName] = useState("");
 
-  // History modal
+  // History modal (legacy month calendar)
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyChild, setHistoryChild] = useState<ChildWithStats | null>(null);
   const [historyMonth, setHistoryMonth] = useState(new Date());
   const [historySessions, setHistorySessions] = useState<{ date: string; is_listening_done: boolean; is_active_work_done: boolean }[]>([]);
+
+  // Yearly heatmap modal
+  const [heatmapOpen, setHeatmapOpen] = useState(false);
+  const [heatmapChild, setHeatmapChild] = useState<ChildWithStats | null>(null);
 
   const toIsraelDate = (d: Date) => {
     return d.toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
