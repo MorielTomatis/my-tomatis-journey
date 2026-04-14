@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error("Auth initialization error:", err);
         if (!isMounted || requestId !== activeRequest) return;
         setRole(null);
-        setError(err?.message || err?.details || String(err));
+        setError("שגיאה באימות. אנא נסה שוב.");
       } finally {
         if (isMounted && requestId === activeRequest) {
           setLoading(false);
@@ -95,7 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .catch((err: any) => {
         console.error("getSession error:", err);
         if (!isMounted) return;
-        setError(err?.message || err?.details || String(err));
+        setError("שגיאה באימות. אנא נסה שוב.");
         setRole(null);
         setLoading(false);
       });
