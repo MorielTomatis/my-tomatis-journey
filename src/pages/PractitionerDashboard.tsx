@@ -36,6 +36,7 @@ import AddMemberDialog from "@/components/AddMemberDialog";
 import YearlyHeatmapModal from "@/components/YearlyHeatmapModal";
 import SessionLogModal from "@/components/SessionLogModal";
 import HistoryCalendarModal from "@/components/HistoryCalendarModal";
+import ResourceManager from "@/components/ResourceManager";
 
 const PHASE_NAMES: Record<number, string> = {
   1: "סדרה 1 · שלב אינטנסיבי",
@@ -516,6 +517,7 @@ const PractitionerDashboard = () => {
             <TabsList className="w-auto">
               <TabsTrigger value="active">פעילים ({children.filter(c => c.is_active).length})</TabsTrigger>
               <TabsTrigger value="completed">הושלמו ({children.filter(c => !c.is_active).length})</TabsTrigger>
+              <TabsTrigger value="guide">ניהול מדריך</TabsTrigger>
             </TabsList>
           </Tabs>
           <div className="relative">
