@@ -13,29 +13,58 @@ const ResetPassword = () => {
   const [confirm, setConfirm] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [ready, setReady] = useState(false);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // Check if the URL contains a recovery token (mobile email link)
-    const hash = window.location.hash;
-    if (hash && hash.includes("type=recovery")) {
-      setReady(true);
-      return;
-    }
+    const checkSession = async () => {
+      // Check for PKCE code in query string
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
 
-    // Also check for access_token in hash (Supabase v2 format)
-    if (hash && hash.includes("access_token")) {
-      setReady(true);
-      return;
-    }
+      // Check hash for implicit flow
+      const hash = window.location.hash;
+      const hasRecoveryHash =
+        hash.includes("type=recovery") || hash.includes("access_token");
 
-    // Fallback: listen for the PASSWORD_RECOVERY auth event
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY" || (session && hash.includes("type=recovery"))) {
-        setReady(true);
+      if (code) {
+        // PKCE flow — exchange the code for a session
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (!error) {
+          setReady(true);
+          setChecking(false);
+          return;
+        }
       }
-    });
 
-    return () => subscription.unsubscribe();
+      if (hasRecoveryHash) {
+        setReady(true);
+        setChecking(false);
+        return;
+      }
+
+      // Check if there's already an active recovery session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setReady(true);
+        setChecking(false);
+        return;
+      }
+
+      // Last resort: listen for auth state change
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        (event, session) => {
+          if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
+            setReady(true);
+            setChecking(false);
+          }
+        }
+      );
+
+      setChecking(false);
+      return () => subscription.unsubscribe();
+    };
+
+    checkSession();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,7 +72,10 @@ const ResetPassword = () => {
     if (submitting) return;
 
     if (password.length < 6) {
-      toast({ title: "הסיסמה חייבת להכיל לפחות 6 תווים", variant: "destructive" });
+      toast({
+        title: "הסיסמה חייבת להכיל לפחות 6 תווים",
+        variant: "destructive",
+      });
       return;
     }
     if (password !== confirm) {
@@ -58,14 +90,21 @@ const ResetPassword = () => {
       toast({ title: "הסיסמה עודכנה בהצלחה! 🎉" });
       navigate("/login", { replace: true });
     } catch (err: any) {
-      toast({ title: "שגיאה בעדכון הסיסמה", description: err?.message || "אנא נסה שנית", variant: "destructive" });
+      toast({
+        title: "שגיאה בעדכון הסיסמה",
+        description: err?.message || "אנא נסי שנית",
+        variant: "destructive",
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <main className="min-h-svh flex items-center justify-center bg-background px-5" dir="rtl">
+    <main
+      className="min-h-svh flex items-center justify-center bg-background px-5"
+      dir="rtl"
+    >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -77,15 +116,31 @@ const ResetPassword = () => {
           <p className="text-muted-foreground text-sm">הזינו סיסמה חדשה</p>
         </div>
 
-        {!ready ? (
+        {checking ? (
+          <div className="bg-card p-6 rounded-xl shadow-soft text-center">
+            <p className="text-muted-foreground text-sm">טוען...</p>
+          </div>
+        ) : !ready ? (
           <div className="bg-card p-6 rounded-xl shadow-soft text-center space-y-3">
-            <p className="text-muted-foreground text-sm">ממתין לאימות הקישור...</p>
-            <p className="text-xs text-muted-foreground">אם הגעתם לכאן ידנית, אנא לחצו על הקישור שנשלח אליכם באימייל.</p>
+            <p className="text-muted-foreground text-sm">
+              ממתין לאימות הקישור...
+            </p>
+            <p className="text-xs text-muted-foreground">
+              אם הגעתם לכאן ידנית, אנא לחצו על הקישור שנשלח אליכם באימייל.
+            </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="bg-card p-6 rounded-xl shadow-soft space-y-4">
+          <form
+            onSubmit={handleSubmit}
+            className="bg-card p-6 rounded-xl shadow-soft space-y-4"
+          >
             <div className="space-y-1.5">
-              <label htmlFor="new-password" className="text-sm font-bold text-foreground">סיסמה חדשה</label>
+              <label
+                htmlFor="new-password"
+                className="text-sm font-bold text-foreground"
+              >
+                סיסמה חדשה
+              </label>
               <Input
                 id="new-password"
                 type="password"
@@ -97,7 +152,12 @@ const ResetPassword = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <label htmlFor="confirm-password" className="text-sm font-bold text-foreground">אימות סיסמה</label>
+              <label
+                htmlFor="confirm-password"
+                className="text-sm font-bold text-foreground"
+              >
+                אימות סיסמה
+              </label>
               <Input
                 id="confirm-password"
                 type="password"
@@ -108,7 +168,11 @@ const ResetPassword = () => {
                 required
               />
             </div>
-            <Button type="submit" disabled={submitting} className="w-full py-3 text-base font-bold">
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="w-full py-3 text-base font-bold"
+            >
               {submitting ? "מעדכן..." : "עדכון סיסמה"}
             </Button>
           </form>
