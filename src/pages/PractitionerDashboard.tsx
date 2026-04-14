@@ -127,11 +127,9 @@ const PractitionerDashboard = () => {
   const [addMemberEmail, setAddMemberEmail] = useState("");
   const [addMemberLastName, setAddMemberLastName] = useState("");
 
-  // History modal (legacy month calendar)
+  // History modal
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyChild, setHistoryChild] = useState<ChildWithStats | null>(null);
-  const [historyMonth, setHistoryMonth] = useState(new Date());
-  const [historySessions, setHistorySessions] = useState<{ date: string; is_listening_done: boolean; is_active_work_done: boolean }[]>([]);
 
   // Yearly heatmap modal
   const [heatmapOpen, setHeatmapOpen] = useState(false);
