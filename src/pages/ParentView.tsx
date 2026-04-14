@@ -193,21 +193,26 @@ const ParentView = () => {
 
       if (existing && existing.length > 0) {
         // Update existing session
+        const updateData = {
+          completed_at: new Date().toISOString(),
+          ...(field === "is_listening_done" ? { is_listening_done: true } : { is_active_work_done: true }),
+        };
         const { error } = await supabase
           .from("sessions")
-          .update({ [field]: true, completed_at: new Date().toISOString() })
+          .update(updateData)
           .eq("id", existing[0].id);
         if (error) throw error;
       } else {
         // Insert new session
+        const insertData = {
+          child_id: child.id,
+          date: today,
+          completed_at: new Date().toISOString(),
+          ...(field === "is_listening_done" ? { is_listening_done: true } : { is_active_work_done: true }),
+        };
         const { error } = await supabase
           .from("sessions")
-          .insert({
-            child_id: child.id,
-            date: today,
-            [field]: true,
-            completed_at: new Date().toISOString(),
-          });
+          .insert(insertData);
         if (error) throw error;
       }
 
