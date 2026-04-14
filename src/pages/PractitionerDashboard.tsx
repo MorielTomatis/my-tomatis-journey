@@ -30,7 +30,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, Plus, MoreVertical, Calendar as CalendarIcon, Mic, Headphones, LogOut, Rocket, Sun, Star, Shield } from "lucide-react";
+import { Search, Plus, MoreVertical, Calendar as CalendarIcon, Mic, Headphones, LogOut, Rocket, Sun, Star, Shield, List } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Calendar } from "@/components/ui/calendar";
 import { he } from "date-fns/locale";
 import FamilyCreatorDialog from "@/components/FamilyCreatorDialog";
@@ -133,6 +135,12 @@ const PractitionerDashboard = () => {
   // Yearly heatmap modal
   const [heatmapOpen, setHeatmapOpen] = useState(false);
   const [heatmapChild, setHeatmapChild] = useState<ChildWithStats | null>(null);
+
+  // Session log modal
+  const [sessionLogOpen, setSessionLogOpen] = useState(false);
+  const [sessionLogChild, setSessionLogChild] = useState<ChildWithStats | null>(null);
+  const [sessionLogData, setSessionLogData] = useState<{ date: string; is_listening_done: boolean; is_active_work_done: boolean; active_minutes: number | null }[]>([]);
+  const [sessionLogLoading, setSessionLogLoading] = useState(false);
 
   const toIsraelDate = (d: Date) => {
     return d.toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
@@ -286,8 +294,30 @@ const PractitionerDashboard = () => {
     return m;
   }, [historySessions]);
 
+  // Fetch session log data
+  useEffect(() => {
+    if (!sessionLogOpen || !sessionLogChild) { setSessionLogData([]); return; }
+    const fetchLog = async () => {
+      setSessionLogLoading(true);
+      const { data } = await supabase
+        .from("sessions")
+        .select("date, is_listening_done, is_active_work_done, active_minutes")
+        .eq("child_id", sessionLogChild.id)
+        .order("date", { ascending: false });
+      setSessionLogData(
+        (data ?? []).map((s) => ({
+          date: s.date,
+          is_listening_done: s.is_listening_done === true,
+          is_active_work_done: s.is_active_work_done === true,
+          active_minutes: s.active_minutes,
+        }))
+      );
+      setSessionLogLoading(false);
+    };
+    fetchLog();
+  }, [sessionLogOpen, sessionLogChild]);
 
-  const handleManualLog = async () => {
+
     if (!logChild) return;
     setLogSubmitting(true);
     try {
@@ -451,6 +481,16 @@ const PractitionerDashboard = () => {
             >
               <span className="ml-2">🔄</span>
               איפוס שלב
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                setSessionLogChild(child);
+                setSessionLogOpen(true);
+              }}
+            >
+              <List className="h-4 w-4 ml-2" />
+              יומן סשנים
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
@@ -902,6 +942,51 @@ const PractitionerDashboard = () => {
         childId={heatmapChild?.id ?? null}
         childName={heatmapChild ? `${heatmapChild.first_name} ${heatmapChild.last_name}` : ""}
       />
+
+      {/* ===== SESSION LOG MODAL ===== */}
+      <Dialog open={sessionLogOpen} onOpenChange={setSessionLogOpen}>
+        <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-right">
+              יומן סשנים — {sessionLogChild?.first_name} {sessionLogChild?.last_name}
+            </DialogTitle>
+            <DialogDescription className="text-right">
+              כל הסשנים שנרשמו עבור מטופל זה
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="flex-1 min-h-0">
+            {sessionLogLoading ? (
+              <p className="text-center text-muted-foreground py-8">טוען...</p>
+            ) : sessionLogData.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">אין סשנים להצגה</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-right">תאריך</TableHead>
+                    <TableHead className="text-center">הקשבה</TableHead>
+                    <TableHead className="text-center">עבודה אקטיבית</TableHead>
+                    <TableHead className="text-center">דקות</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sessionLogData.map((s, i) => {
+                    const [y, m, d] = s.date.split("-");
+                    return (
+                      <TableRow key={i}>
+                        <TableCell className="text-right font-medium">{`${d}.${m}.${y}`}</TableCell>
+                        <TableCell className="text-center">{s.is_listening_done ? <span className="text-[#40C4C4] font-bold">✓</span> : <span className="text-muted-foreground">—</span>}</TableCell>
+                        <TableCell className="text-center">{s.is_active_work_done ? <span className="text-[#1E3A8A] font-bold">✓</span> : <span className="text-muted-foreground">—</span>}</TableCell>
+                        <TableCell className="text-center">{s.active_minutes != null ? s.active_minutes : <span className="text-muted-foreground">—</span>}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 };
