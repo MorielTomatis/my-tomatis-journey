@@ -163,14 +163,9 @@ const ParentView = () => {
   };
 
   const formatDatabaseError = (err: unknown) => {
-    if (typeof err === "object" && err !== null) {
-      const dbError = err as { message?: string; details?: string; hint?: string; code?: string };
-      return [dbError.message, dbError.details, dbError.hint, dbError.code]
-        .filter(Boolean)
-        .join(" | ");
-    }
-
-    return String(err);
+    // Log full error for developers, return generic message for users
+    console.error("Database error details:", err);
+    return "שגיאה בשמירה. אנא נסה שוב.";
   };
 
   // Upsert a session row for today when a button is clicked
