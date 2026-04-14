@@ -38,6 +38,7 @@ import { he } from "date-fns/locale";
 import FamilyCreatorDialog from "@/components/FamilyCreatorDialog";
 import AddMemberDialog from "@/components/AddMemberDialog";
 import YearlyHeatmapModal from "@/components/YearlyHeatmapModal";
+import SessionLogModal from "@/components/SessionLogModal";
 
 const PHASE_NAMES: Record<number, string> = {
   1: "סדרה 1 · שלב אינטנסיבי",
