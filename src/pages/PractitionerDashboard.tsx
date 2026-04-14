@@ -483,6 +483,16 @@ const PractitionerDashboard = () => {
               איפוס שלב
             </DropdownMenuItem>
             <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                setSessionLogChild(child);
+                setSessionLogOpen(true);
+              }}
+            >
+              <List className="h-4 w-4 ml-2" />
+              יומן סשנים
+            </DropdownMenuItem>
+            <DropdownMenuItem
               onClick={() => {
                 setDeleteChild(child);
                 setDeleteOpen(true);
