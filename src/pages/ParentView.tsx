@@ -56,6 +56,8 @@ interface ChildCardState {
   micDone: boolean;
   micMinutes: number | "";
   submitting: boolean;
+  showMicInput: boolean;
+  activeMinutesLogged: number | null;
 }
 
 const ParentView = () => {
@@ -93,7 +95,7 @@ const ParentView = () => {
       const childIds = children.map((c) => c.id);
       const { data: allSessions } = await supabase
         .from("sessions")
-        .select("child_id, date, passive_completed, is_archived, is_listening_done, is_active_work_done")
+        .select("child_id, date, passive_completed, is_archived, is_listening_done, is_active_work_done, active_minutes")
         .in("child_id", childIds);
 
       // Build week dates
@@ -142,6 +144,8 @@ const ParentView = () => {
           micDone,
           micMinutes: "",
           submitting: false,
+          showMicInput: false,
+          activeMinutesLogged: todaySession?.active_minutes ?? null,
         };
       }
 
@@ -168,15 +172,74 @@ const ParentView = () => {
     return "שגיאה בשמירה. אנא נסה שוב.";
   };
 
-  // Upsert a session row for today when a button is clicked
-  const handleButtonClick = async (child: ChildProfile, field: "is_listening_done" | "is_active_work_done") => {
+  // When active work button is tapped, show the minutes input instead of saving immediately
+  const handleActiveWorkTap = (childId: string) => {
+    const state = cardStates[childId];
+    if (!state || state.micDone || state.submitting) return;
+    updateCardState(childId, { showMicInput: true });
+  };
+
+  // Save active work with minutes
+  const handleActiveWorkSubmit = async (child: ChildProfile) => {
+    const state = cardStates[child.id];
+    if (!state || state.submitting) return;
+
+    const minutes = Number(state.micMinutes);
+    if (!minutes || minutes < 1 || minutes > 60) {
+      toast({ title: "נא להזין מספר דקות בין 1 ל-60", variant: "destructive" });
+      return;
+    }
+
+    updateCardState(child.id, { submitting: true });
+
+    try {
+      const { data: existing, error: fetchError } = await supabase
+        .from("sessions")
+        .select("id")
+        .eq("child_id", child.id)
+        .eq("date", today)
+        .limit(1);
+
+      if (fetchError) throw fetchError;
+
+      const payload = {
+        is_active_work_done: true,
+        active_minutes: minutes,
+        completed_at: new Date().toISOString(),
+      };
+
+      if (existing && existing.length > 0) {
+        const { error } = await supabase
+          .from("sessions")
+          .update(payload)
+          .eq("id", existing[0].id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("sessions")
+          .insert({ child_id: child.id, date: today, ...payload });
+        if (error) throw error;
+      }
+
+      await fetchData();
+      toast({ title: `נשמר בהצלחה! ✓` });
+    } catch (err) {
+      const errorMessage = formatDatabaseError(err);
+      console.error("Session save error:", { childId: child.id, date: today, error: err });
+      toast({ title: "שגיאה בשמירה", description: errorMessage, variant: "destructive" });
+    } finally {
+      updateCardState(child.id, { submitting: false, showMicInput: false });
+    }
+  };
+
+  // Upsert a session row for today when the listening button is clicked
+  const handleButtonClick = async (child: ChildProfile, field: "is_listening_done") => {
     const state = cardStates[child.id];
     if (!state || state.submitting) return;
 
     updateCardState(child.id, { submitting: true });
 
     try {
-      // Check if a session already exists for today
       const { data: existing, error: fetchError } = await supabase
         .from("sessions")
         .select("id")
@@ -187,41 +250,23 @@ const ParentView = () => {
       if (fetchError) throw fetchError;
 
       if (existing && existing.length > 0) {
-        // Update existing session
-        const updateData = {
-          completed_at: new Date().toISOString(),
-          ...(field === "is_listening_done" ? { is_listening_done: true } : { is_active_work_done: true }),
-        };
         const { error } = await supabase
           .from("sessions")
-          .update(updateData)
+          .update({ completed_at: new Date().toISOString(), is_listening_done: true })
           .eq("id", existing[0].id);
         if (error) throw error;
       } else {
-        // Insert new session
-        const insertData = {
-          child_id: child.id,
-          date: today,
-          completed_at: new Date().toISOString(),
-          ...(field === "is_listening_done" ? { is_listening_done: true } : { is_active_work_done: true }),
-        };
         const { error } = await supabase
           .from("sessions")
-          .insert(insertData);
+          .insert({ child_id: child.id, date: today, completed_at: new Date().toISOString(), is_listening_done: true });
         if (error) throw error;
       }
 
       await fetchData();
-
       toast({ title: `נשמר בהצלחה! ✓` });
     } catch (err) {
       const errorMessage = formatDatabaseError(err);
-      console.error("Session save error:", {
-        childId: child.id,
-        date: today,
-        field,
-        error: err,
-      });
+      console.error("Session save error:", { childId: child.id, date: today, field, error: err });
       toast({ title: "שגיאה בשמירה", description: errorMessage, variant: "destructive" });
     } finally {
       updateCardState(child.id, { submitting: false });
@@ -372,6 +417,11 @@ const ParentView = () => {
                   <div className="text-center space-y-1 py-2">
                     <span className="text-3xl">🎉</span>
                     <p className="font-bold text-foreground">כל הכבוד! סיימנו להיום.</p>
+                    {state.activeMinutesLogged && (
+                      <p className="text-sm text-muted-foreground">
+                        עבודה אקטיבית: {state.activeMinutesLogged} דקות
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -394,7 +444,7 @@ const ParentView = () => {
 
                       <motion.button
                         whileTap={!state.micDone ? { scale: 0.95 } : undefined}
-                        onClick={() => !state.micDone && handleButtonClick(child, "is_active_work_done")}
+                        onClick={() => handleActiveWorkTap(child.id)}
                         disabled={state.micDone || state.submitting}
                         className={`flex-1 rounded-xl font-bold text-sm shadow-soft transition-all text-white ${
                           state.micDone
@@ -404,10 +454,48 @@ const ParentView = () => {
                       >
                         <span className="flex flex-row items-center justify-center gap-2 p-3">
                           <Mic className="h-4 w-4 shrink-0" />
-                          {state.submitting && !state.micDone ? "שומר..." : state.micDone ? "עבודה ✓" : "עבודה אקטיבית בוצעה"}
+                          {state.micDone
+                            ? `עבודה ✓${state.activeMinutesLogged ? ` (${state.activeMinutesLogged} דק׳)` : ""}`
+                            : "עבודה אקטיבית בוצעה"}
                         </span>
                       </motion.button>
                     </div>
+
+                    {/* Minutes input for active work */}
+                    {state.showMicInput && !state.micDone && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-muted/50 rounded-xl p-4 space-y-3"
+                      >
+                        <label className="block text-sm font-bold text-foreground text-center">
+                          כמה דקות עבדת היום?
+                        </label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={60}
+                          inputMode="numeric"
+                          value={state.micMinutes}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            updateCardState(child.id, {
+                              micMinutes: val === "" ? "" : Math.min(60, Math.max(1, Number(val))),
+                            });
+                          }}
+                          placeholder="דקות"
+                          className="w-full h-12 rounded-xl border border-border bg-background px-4 text-center text-lg font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                        <motion.button
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => handleActiveWorkSubmit(child)}
+                          disabled={state.submitting || !state.micMinutes}
+                          className="w-full py-3 rounded-xl font-bold text-sm bg-[#1E3A8A] text-white shadow-soft disabled:opacity-50"
+                        >
+                          {state.submitting ? "שומר..." : "אישור ✓"}
+                        </motion.button>
+                      </motion.div>
+                    )}
 
                     {state.listeningDone && state.micDone && !state.todayLogged && (
                       <motion.button
