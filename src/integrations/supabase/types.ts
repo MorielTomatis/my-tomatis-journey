@@ -68,6 +68,36 @@ export type Database = {
         }
         Relationships: []
       }
+      resources: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_active: boolean
+          sort_order: number
+          title: string
+          youtube_url: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          title: string
+          youtube_url: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          title?: string
+          youtube_url?: string
+        }
+        Relationships: []
+      }
       sessions: {
         Row: {
           active_completed: boolean

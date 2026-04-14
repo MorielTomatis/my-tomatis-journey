@@ -8,6 +8,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ParentView from "./pages/ParentView";
 import PractitionerDashboard from "./pages/PractitionerDashboard";
 import JourneyMap from "./pages/JourneyMap";
+import GuidePage from "./pages/GuidePage";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -37,6 +38,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRole="parent">
                   <JourneyMap />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/guide"
+              element={
+                <ProtectedRoute allowedRole="parent">
+                  <GuidePage />
                 </ProtectedRoute>
               }
             />

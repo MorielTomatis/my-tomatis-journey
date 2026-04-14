@@ -36,6 +36,7 @@ import AddMemberDialog from "@/components/AddMemberDialog";
 import YearlyHeatmapModal from "@/components/YearlyHeatmapModal";
 import SessionLogModal from "@/components/SessionLogModal";
 import HistoryCalendarModal from "@/components/HistoryCalendarModal";
+import ResourceManager from "@/components/ResourceManager";
 
 const PHASE_NAMES: Record<number, string> = {
   1: "סדרה 1 · שלב אינטנסיבי",
@@ -516,6 +517,7 @@ const PractitionerDashboard = () => {
             <TabsList className="w-auto">
               <TabsTrigger value="active">פעילים ({children.filter(c => c.is_active).length})</TabsTrigger>
               <TabsTrigger value="completed">הושלמו ({children.filter(c => !c.is_active).length})</TabsTrigger>
+              <TabsTrigger value="guide">ניהול מדריך</TabsTrigger>
             </TabsList>
           </Tabs>
           <div className="relative">
@@ -529,7 +531,12 @@ const PractitionerDashboard = () => {
           </div>
         </motion.div>
 
-        {/* Client Grid */}
+        {/* Client Grid or Guide Manager */}
+        {tab === "guide" ? (
+          <div className="flex-1 overflow-y-auto pb-4">
+            <ResourceManager />
+          </div>
+        ) : (
         <div className="flex-1 overflow-y-auto">
           {filtered.length === 0 ? (
             <motion.div variants={item} className="text-center py-16 text-muted-foreground">
@@ -623,6 +630,7 @@ const PractitionerDashboard = () => {
             </motion.div>
           )}
         </div>
+        )}
       </motion.div>
 
       {/* ===== ADD MEMBER TO FAMILY MODAL ===== */}
