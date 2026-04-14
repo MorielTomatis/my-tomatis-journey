@@ -139,8 +139,6 @@ const PractitionerDashboard = () => {
   // Session log modal
   const [sessionLogOpen, setSessionLogOpen] = useState(false);
   const [sessionLogChild, setSessionLogChild] = useState<ChildWithStats | null>(null);
-  const [sessionLogData, setSessionLogData] = useState<{ date: string; is_listening_done: boolean; is_active_work_done: boolean; active_minutes: number | null }[]>([]);
-  const [sessionLogLoading, setSessionLogLoading] = useState(false);
 
   const toIsraelDate = (d: Date) => {
     return d.toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
