@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Rocket, Sun, Star, Shield, Headphones, Mic, Map as MapIcon } from "lucide-react";
+import { LogOut, Rocket, Sun, Star, Shield, Headphones, Mic, Map as MapIcon, BookOpen } from "lucide-react";
 
 const PHASE_LABELS: Record<number, { label: string; type: "listening_only" | "listening_and_mic" }> = {
   1: { label: "שלב אינטנסיבי", type: "listening_only" },
@@ -443,6 +443,10 @@ const ParentView = () => {
         <button onClick={() => navigate("/journey")} className="flex flex-col items-center gap-1 text-muted-foreground">
           <MapIcon className="h-5 w-5" />
           <span className="text-xs">מפת המסע</span>
+        </button>
+        <button onClick={() => navigate("/guide")} className="flex flex-col items-center gap-1 text-muted-foreground">
+          <BookOpen className="h-5 w-5" />
+          <span className="text-xs">מדריך</span>
         </button>
       </nav>
     </main>
