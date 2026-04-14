@@ -37,12 +37,12 @@ import FamilyCreatorDialog from "@/components/FamilyCreatorDialog";
 import AddMemberDialog from "@/components/AddMemberDialog";
 
 const PHASE_NAMES: Record<number, string> = {
-  1: "אינטנסיבי 1",
-  2: "קונסולידציה 1",
-  3: "אינטנסיבי 2",
-  4: "קונסולידציה 2",
-  5: "אינטנסיבי 3",
-  6: "קונסולידציה 3",
+  1: "סדרה 1 · שלב אינטנסיבי",
+  2: "סדרה 1 · שלב חיזוק והסתגלות",
+  3: "סדרה 2 · שלב אינטנסיבי",
+  4: "סדרה 2 · שלב חיזוק והסתגלות",
+  5: "סדרה 3 · שלב אינטנסיבי",
+  6: "סדרה 3 · שלב חיזוק והסתגלות",
 };
 
 const ICON_EMOJI: Record<string, string> = {
@@ -465,15 +465,15 @@ const PractitionerDashboard = () => {
         </span>
         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <Headphones className="h-3.5 w-3.5" />
-          <span>יום {child.sessionCount} מתוך 14</span>
+          <span>{[2, 4, 6].includes(child.current_phase) ? `האזנה ${child.sessionCount}` : `יום ${child.sessionCount} מתוך 14`}</span>
         </div>
       </div>
 
       {/* Last session */}
       <p className="text-xs text-muted-foreground">
         {child.lastSessionDate
-          ? `סשן אחרון: ${new Date(child.lastSessionDate).toLocaleDateString("he-IL")}`
-          : "טרם נרשם סשן"}
+          ? `האזנה אחרונה: ${new Date(child.lastSessionDate).toLocaleDateString("he-IL")}`
+          : "טרם נרשמה האזנה"}
       </p>
     </>
   );
