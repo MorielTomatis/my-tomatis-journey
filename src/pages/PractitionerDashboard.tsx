@@ -294,8 +294,30 @@ const PractitionerDashboard = () => {
     return m;
   }, [historySessions]);
 
+  // Fetch session log data
+  useEffect(() => {
+    if (!sessionLogOpen || !sessionLogChild) { setSessionLogData([]); return; }
+    const fetchLog = async () => {
+      setSessionLogLoading(true);
+      const { data } = await supabase
+        .from("sessions")
+        .select("date, is_listening_done, is_active_work_done, active_minutes")
+        .eq("child_id", sessionLogChild.id)
+        .order("date", { ascending: false });
+      setSessionLogData(
+        (data ?? []).map((s) => ({
+          date: s.date,
+          is_listening_done: s.is_listening_done === true,
+          is_active_work_done: s.is_active_work_done === true,
+          active_minutes: s.active_minutes,
+        }))
+      );
+      setSessionLogLoading(false);
+    };
+    fetchLog();
+  }, [sessionLogOpen, sessionLogChild]);
 
-  const handleManualLog = async () => {
+
     if (!logChild) return;
     setLogSubmitting(true);
     try {
