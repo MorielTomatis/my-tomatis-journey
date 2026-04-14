@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/PasswordInput";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -123,9 +123,8 @@ const ResetPassword = () => {
               >
                 סיסמה חדשה
               </label>
-              <Input
+              <PasswordInput
                 id="new-password"
-                type="password"
                 placeholder="••••••••"
                 dir="ltr"
                 value={password}
@@ -140,9 +139,8 @@ const ResetPassword = () => {
               >
                 אימות סיסמה
               </label>
-              <Input
+              <PasswordInput
                 id="confirm-password"
-                type="password"
                 placeholder="••••••••"
                 dir="ltr"
                 value={confirm}
