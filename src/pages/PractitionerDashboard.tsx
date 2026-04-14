@@ -606,7 +606,7 @@ const PractitionerDashboard = () => {
                               return (
                                 <div
                                   key={child.id}
-                                  onClick={() => { setHistoryChild(child); setHistoryMonth(new Date()); setHistoryOpen(true); }}
+                                  onClick={() => { setHeatmapChild(child); setHeatmapOpen(true); }}
                                   className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative cursor-pointer hover:shadow-md transition-shadow ${getCardBorderClasses(child)}`}
                                 >
                                   {renderClientCard(child, status)}
@@ -625,7 +625,7 @@ const PractitionerDashboard = () => {
                         <motion.div
                           key={child.id}
                           variants={item}
-                          onClick={() => { setHistoryChild(child); setHistoryMonth(new Date()); setHistoryOpen(true); }}
+                          onClick={() => { setHeatmapChild(child); setHeatmapOpen(true); }}
                           className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative cursor-pointer hover:shadow-md transition-shadow ${getCardBorderClasses(child)}`}
                         >
                           {renderClientCard(child, status)}
