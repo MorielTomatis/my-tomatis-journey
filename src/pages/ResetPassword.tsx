@@ -13,58 +13,41 @@ const ResetPassword = () => {
   const [confirm, setConfirm] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [ready, setReady] = useState(false);
-  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    const checkSession = async () => {
-      // Check for PKCE code in query string
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get("code");
-
-      // Check hash for implicit flow
-      const hash = window.location.hash;
-      const hasRecoveryHash =
-        hash.includes("type=recovery") || hash.includes("access_token");
-
-      if (code) {
-        // PKCE flow — exchange the code for a session
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        if (!error) {
-          setReady(true);
-          setChecking(false);
-          return;
-        }
-      }
-
-      if (hasRecoveryHash) {
-        setReady(true);
-        setChecking(false);
-        return;
-      }
-
-      // Check if there's already an active recovery session
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setReady(true);
-        setChecking(false);
-        return;
-      }
-
-      // Last resort: listen for auth state change
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        (event, session) => {
-          if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
+    // CRITICAL: Set up the auth listener FIRST, before anything else.
+    // Supabase auto-processes the URL hash/code on init and fires events
+    // synchronously. If we do async work first, we miss the event.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log("[ResetPassword] auth event:", event);
+        if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+          if (session) {
             setReady(true);
-            setChecking(false);
           }
         }
-      );
+      }
+    );
 
-      setChecking(false);
-      return () => subscription.unsubscribe();
-    };
+    // Also check for PKCE code in query string (e.g. ?code=xxx)
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (!error) {
+          setReady(true);
+        }
+      });
+    }
 
-    checkSession();
+    // Check if there's already an active session (e.g. page refresh after recovery)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setReady(true);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -116,14 +99,13 @@ const ResetPassword = () => {
           <p className="text-muted-foreground text-sm">הזינו סיסמה חדשה</p>
         </div>
 
-        {checking ? (
-          <div className="bg-card p-6 rounded-xl shadow-soft text-center">
-            <p className="text-muted-foreground text-sm">טוען...</p>
-          </div>
-        ) : !ready ? (
+        {!ready ? (
           <div className="bg-card p-6 rounded-xl shadow-soft text-center space-y-3">
+            <div className="flex justify-center">
+              <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
             <p className="text-muted-foreground text-sm">
-              ממתין לאימות הקישור...
+              מאמת את הקישור...
             </p>
             <p className="text-xs text-muted-foreground">
               אם הגעתם לכאן ידנית, אנא לחצו על הקישור שנשלח אליכם באימייל.
