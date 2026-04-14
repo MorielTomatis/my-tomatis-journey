@@ -30,7 +30,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, Plus, MoreVertical, Calendar as CalendarIcon, Mic, Headphones, LogOut, Rocket, Sun, Star, Shield } from "lucide-react";
+import { Search, Plus, MoreVertical, Calendar as CalendarIcon, Mic, Headphones, LogOut, Rocket, Sun, Star, Shield, List } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Calendar } from "@/components/ui/calendar";
 import { he } from "date-fns/locale";
 import FamilyCreatorDialog from "@/components/FamilyCreatorDialog";
