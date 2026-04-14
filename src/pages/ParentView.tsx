@@ -8,11 +8,11 @@ import { LogOut, Rocket, Sun, Star, Shield, Headphones, Mic, Map as MapIcon } fr
 
 const PHASE_LABELS: Record<number, { label: string; type: "listening_only" | "listening_and_mic" }> = {
   1: { label: "שלב אינטנסיבי", type: "listening_only" },
-  2: { label: "שלב קונסולידציה", type: "listening_and_mic" },
+  2: { label: "שלב חיזוק והסתגלות", type: "listening_and_mic" },
   3: { label: "שלב אינטנסיבי", type: "listening_and_mic" },
-  4: { label: "שלב קונסולידציה", type: "listening_and_mic" },
+  4: { label: "שלב חיזוק והסתגלות", type: "listening_and_mic" },
   5: { label: "שלב אינטנסיבי", type: "listening_and_mic" },
-  6: { label: "שלב קונסולידציה", type: "listening_and_mic" },
+  6: { label: "שלב חיזוק והסתגלות", type: "listening_and_mic" },
 };
 
 const ICON_MAP: Record<string, { emoji: string; Icon: typeof Rocket }> = {
@@ -342,11 +342,13 @@ const ParentView = () => {
                     <h2 className="font-bold text-lg text-foreground">המסע של {child.first_name}</h2>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <span className="inline-flex items-center gap-1 bg-accent/10 text-accent px-2.5 py-0.5 rounded-full text-xs font-bold">
-                        שלב {child.current_phase} · {phaseConfig?.label}
+                        סדרה {Math.ceil(child.current_phase / 2)} · {phaseConfig?.label}
                       </span>
                       <span className="flex items-center gap-1 text-xs">
                         <Headphones className="h-3.5 w-3.5" />
-                        יום {state.phaseDayNumber} מתוך 14
+                        {[2, 4, 6].includes(child.current_phase)
+                          ? `האזנה ${state.phaseDayNumber}`
+                          : `יום ${state.phaseDayNumber} מתוך 14`}
                       </span>
                     </div>
                   </div>
