@@ -292,28 +292,6 @@ const PractitionerDashboard = () => {
     return m;
   }, [historySessions]);
 
-  // Fetch session log data
-  useEffect(() => {
-    if (!sessionLogOpen || !sessionLogChild) { setSessionLogData([]); return; }
-    const fetchLog = async () => {
-      setSessionLogLoading(true);
-      const { data } = await supabase
-        .from("sessions")
-        .select("date, is_listening_done, is_active_work_done, active_minutes")
-        .eq("child_id", sessionLogChild.id)
-        .order("date", { ascending: false });
-      setSessionLogData(
-        (data ?? []).map((s) => ({
-          date: s.date,
-          is_listening_done: s.is_listening_done === true,
-          is_active_work_done: s.is_active_work_done === true,
-          active_minutes: s.active_minutes,
-        }))
-      );
-      setSessionLogLoading(false);
-    };
-    fetchLog();
-  }, [sessionLogOpen, sessionLogChild]);
 
 
     if (!logChild) return;
@@ -942,49 +920,12 @@ const PractitionerDashboard = () => {
       />
 
       {/* ===== SESSION LOG MODAL ===== */}
-      <Dialog open={sessionLogOpen} onOpenChange={setSessionLogOpen}>
-        <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col" dir="rtl">
-          <DialogHeader>
-            <DialogTitle className="text-right">
-              יומן סשנים — {sessionLogChild?.first_name} {sessionLogChild?.last_name}
-            </DialogTitle>
-            <DialogDescription className="text-right">
-              כל הסשנים שנרשמו עבור מטופל זה
-            </DialogDescription>
-          </DialogHeader>
-          <ScrollArea className="flex-1 min-h-0">
-            {sessionLogLoading ? (
-              <p className="text-center text-muted-foreground py-8">טוען...</p>
-            ) : sessionLogData.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">אין סשנים להצגה</p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-right">תאריך</TableHead>
-                    <TableHead className="text-center">הקשבה</TableHead>
-                    <TableHead className="text-center">עבודה אקטיבית</TableHead>
-                    <TableHead className="text-center">דקות</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sessionLogData.map((s, i) => {
-                    const [y, m, d] = s.date.split("-");
-                    return (
-                      <TableRow key={i}>
-                        <TableCell className="text-right font-medium">{`${d}.${m}.${y}`}</TableCell>
-                        <TableCell className="text-center">{s.is_listening_done ? <span className="text-[#40C4C4] font-bold">✓</span> : <span className="text-muted-foreground">—</span>}</TableCell>
-                        <TableCell className="text-center">{s.is_active_work_done ? <span className="text-[#1E3A8A] font-bold">✓</span> : <span className="text-muted-foreground">—</span>}</TableCell>
-                        <TableCell className="text-center">{s.active_minutes != null ? s.active_minutes : <span className="text-muted-foreground">—</span>}</TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            )}
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
+      <SessionLogModal
+        open={sessionLogOpen}
+        onOpenChange={setSessionLogOpen}
+        childId={sessionLogChild?.id ?? null}
+        childName={sessionLogChild ? `${sessionLogChild.first_name} ${sessionLogChild.last_name}` : ""}
+      />
     </main>
   );
 };
