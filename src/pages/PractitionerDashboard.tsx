@@ -603,14 +603,14 @@ const PractitionerDashboard = () => {
                           </div>
 
                           {/* Member Cards */}
-                          <div className="flex flex-col gap-3">
+                          <div className="flex flex-col gap-3 lg:grid lg:grid-cols-2 lg:gap-4">
                             {members.map((child) => {
                               const status = getStatus(child);
                               return (
                                 <div
                                   key={child.id}
                                   onClick={() => { setHeatmapChild(child); setHeatmapOpen(true); }}
-                                  className={`bg-card rounded-xl p-5 shadow-soft space-y-3 relative cursor-pointer hover:shadow-md transition-shadow ${getCardBorderClasses(child)}`}
+                                  className={`bg-card rounded-xl p-5 lg:p-6 shadow-soft space-y-3 relative cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all ${getCardBorderClasses(child)}`}
                                 >
                                   {renderClientCard(child, status)}
                                 </div>
