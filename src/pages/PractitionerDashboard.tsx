@@ -642,6 +642,8 @@ const PractitionerDashboard = () => {
           )}
         </div>
         )}
+          </div>
+        </motion.div>
       </motion.div>
 
       {/* ===== ADD MEMBER TO FAMILY MODAL ===== */}
