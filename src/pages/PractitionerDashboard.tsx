@@ -492,15 +492,15 @@ const PractitionerDashboard = () => {
   }
 
   return (
-    <main className="max-w-md mx-auto min-h-svh flex flex-col p-4">
+    <main className="max-w-md lg:max-w-7xl mx-auto min-h-svh flex flex-col p-4 lg:p-6">
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6 flex-1 flex flex-col">
         {/* Header */}
-        <motion.header variants={item} className="py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-primary">שלום, מוריאל</h1>
-            <p className="text-muted-foreground text-sm">לוח בקרה · {children.filter(c => c.is_active).length} מטופלים פעילים</p>
+        <motion.header variants={item} className="py-4 flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-2xl lg:text-3xl font-bold text-primary">שלום, מוריאל</h1>
+            <p className="text-muted-foreground text-sm lg:text-base">לוח בקרה · {children.filter(c => c.is_active).length} מטופלים פעילים</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <Button onClick={() => setAddOpen(true)} className="gap-2">
               <Plus className="h-4 w-4" />
               יצירת משפחה
@@ -511,25 +511,36 @@ const PractitionerDashboard = () => {
           </div>
         </motion.header>
 
-        {/* Tabs + Search */}
-        <motion.div variants={item} className="flex items-center gap-3">
-          <Tabs value={tab} onValueChange={setTab} className="flex-1">
-            <TabsList className="w-auto">
-              <TabsTrigger value="active">פעילים ({children.filter(c => c.is_active).length})</TabsTrigger>
-              <TabsTrigger value="completed">הושלמו ({children.filter(c => !c.is_active).length})</TabsTrigger>
-              <TabsTrigger value="guide">ניהול מדריך</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <div className="relative">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="חיפוש לפי שם..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pr-9 w-52"
-            />
-          </div>
-        </motion.div>
+        {/* Desktop layout: sidebar + main */}
+        <motion.div variants={item} className="flex flex-col lg:flex-row lg:gap-6 flex-1 min-h-0">
+          {/* Sidebar (desktop) / Top controls (mobile) */}
+          <aside className="lg:w-[250px] lg:shrink-0 lg:border lg:border-border lg:rounded-xl lg:bg-card lg:p-4 lg:h-fit lg:sticky lg:top-4 space-y-3">
+            <div className="relative lg:w-full">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="חיפוש לפי שם..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pr-9 w-52 lg:w-full"
+              />
+            </div>
+            <Tabs value={tab} onValueChange={setTab} className="flex-1 lg:w-full">
+              <TabsList className="w-auto lg:w-full lg:flex-col lg:h-auto lg:bg-transparent lg:p-0 lg:gap-1">
+                <TabsTrigger value="active" className="lg:w-full lg:justify-start lg:data-[state=active]:bg-primary lg:data-[state=active]:text-primary-foreground">
+                  פעילים ({children.filter(c => c.is_active).length})
+                </TabsTrigger>
+                <TabsTrigger value="completed" className="lg:w-full lg:justify-start lg:data-[state=active]:bg-primary lg:data-[state=active]:text-primary-foreground">
+                  הושלמו ({children.filter(c => !c.is_active).length})
+                </TabsTrigger>
+                <TabsTrigger value="guide" className="lg:w-full lg:justify-start lg:data-[state=active]:bg-primary lg:data-[state=active]:text-primary-foreground">
+                  ניהול מדריך
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </aside>
+
+          {/* Main content area */}
+          <div className="flex-1 flex flex-col min-w-0">
 
         {/* Client Grid or Guide Manager */}
         {tab === "guide" ? (
