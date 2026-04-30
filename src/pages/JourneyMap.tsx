@@ -194,6 +194,7 @@ const JourneyMap = () => {
   const [profiles, setProfiles] = useState<ChildProfile[]>([]);
   const [selectedChild, setSelectedChild] = useState<ChildProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [completedSessions, setCompletedSessions] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -218,6 +219,23 @@ const JourneyMap = () => {
     };
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (!selectedChild) {
+      setCompletedSessions(0);
+      return;
+    }
+    const fetchSessionCount = async () => {
+      // Count all logged listening sessions (including archived from prior phases)
+      const { count } = await supabase
+        .from("sessions")
+        .select("id", { count: "exact", head: true })
+        .eq("child_id", selectedChild.id)
+        .eq("is_listening_done", true);
+      setCompletedSessions(count ?? 0);
+    };
+    fetchSessionCount();
+  }, [selectedChild]);
 
   if (loading) {
     return (
