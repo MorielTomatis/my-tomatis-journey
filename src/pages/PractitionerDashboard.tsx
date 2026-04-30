@@ -571,15 +571,15 @@ const PractitionerDashboard = () => {
                           className="bg-muted/30 border border-border rounded-xl p-4 space-y-3"
                         >
                           {/* Folder Header */}
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h3 className="text-lg font-bold text-primary">משפחת {familyLastName}</h3>
-                              <p className="text-sm text-muted-foreground" dir="ltr">{email}</p>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <h3 className="text-lg font-bold text-primary truncate">משפחת {familyLastName}</h3>
+                              <p className="text-sm text-muted-foreground truncate" dir="ltr">{email}</p>
                             </div>
                             <Button
                               variant="outline"
                               size="sm"
-                              className="text-primary border-primary hover:bg-primary/10 gap-1.5"
+                              className="text-primary border-primary hover:bg-primary/10 gap-1.5 shrink-0"
                               onClick={() => {
                                 setAddMemberEmail(email);
                                 setAddMemberLastName(familyLastName);
