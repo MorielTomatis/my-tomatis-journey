@@ -356,8 +356,8 @@ const PractitionerDashboard = () => {
   const renderClientCard = (child: ChildWithStats, status: "logged" | "missed" | "pending") => (
     <>
       {/* Top row: name + status dot + menu */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           {tab === "active" && (
             <span
               className={`h-2.5 w-2.5 rounded-full shrink-0 ${
@@ -369,12 +369,12 @@ const PractitionerDashboard = () => {
               }`}
             />
           )}
-          <span className="text-lg">{ICON_EMOJI[child.icon] || "🚀"}</span>
-          <h3 className="font-bold text-foreground">
+          <span className="text-lg shrink-0">{ICON_EMOJI[child.icon] || "🚀"}</span>
+          <h3 className="font-bold text-foreground truncate min-w-0">
             {child.first_name} {child.last_name}
           </h3>
           {child.user_id && !child.parent_id && (
-            <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full font-bold">
+            <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full font-bold shrink-0">
               מבוגר אחראי
             </span>
           )}
@@ -382,11 +382,11 @@ const PractitionerDashboard = () => {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="p-1 rounded-md hover:bg-muted transition-colors">
+            <button className="p-1 rounded-md hover:bg-muted transition-colors shrink-0">
               <MoreVertical className="h-4 w-4 text-muted-foreground" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
+          <DropdownMenuContent align="end" side="bottom" sideOffset={4} collisionPadding={8} avoidCollisions={true}>
             <DropdownMenuItem
               onClick={() => {
                 setEditChild(child);
@@ -571,15 +571,15 @@ const PractitionerDashboard = () => {
                           className="bg-muted/30 border border-border rounded-xl p-4 space-y-3"
                         >
                           {/* Folder Header */}
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h3 className="text-lg font-bold text-primary">משפחת {familyLastName}</h3>
-                              <p className="text-sm text-muted-foreground" dir="ltr">{email}</p>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <h3 className="text-lg font-bold text-primary truncate">משפחת {familyLastName}</h3>
+                              <p className="text-sm text-muted-foreground truncate" dir="ltr">{email}</p>
                             </div>
                             <Button
                               variant="outline"
                               size="sm"
-                              className="text-primary border-primary hover:bg-primary/10 gap-1.5"
+                              className="text-primary border-primary hover:bg-primary/10 gap-1.5 shrink-0"
                               onClick={() => {
                                 setAddMemberEmail(email);
                                 setAddMemberLastName(familyLastName);
