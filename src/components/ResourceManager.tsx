@@ -173,7 +173,7 @@ const ResourceManager = () => {
       {/* Add/Edit Dialog */}
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent dir="rtl" className="w-[calc(100%-2rem)] max-w-md max-h-[90vh] flex flex-col gap-0 p-0">
-          <DialogHeader className="p-6 pb-2 shrink-0">
+          <DialogHeader className="p-6 pb-2 pl-12 shrink-0">
             <DialogTitle>{editingId ? "עריכת סרטון" : "הוספת סרטון חדש"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 overflow-y-auto px-6 py-2 flex-1 min-h-0">
