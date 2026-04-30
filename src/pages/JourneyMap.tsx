@@ -194,6 +194,7 @@ const JourneyMap = () => {
   const [profiles, setProfiles] = useState<ChildProfile[]>([]);
   const [selectedChild, setSelectedChild] = useState<ChildProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [completedSessions, setCompletedSessions] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -219,6 +220,23 @@ const JourneyMap = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (!selectedChild) {
+      setCompletedSessions(0);
+      return;
+    }
+    const fetchSessionCount = async () => {
+      // Count all logged listening sessions (including archived from prior phases)
+      const { count } = await supabase
+        .from("sessions")
+        .select("id", { count: "exact", head: true })
+        .eq("child_id", selectedChild.id)
+        .eq("is_listening_done", true);
+      setCompletedSessions(count ?? 0);
+    };
+    fetchSessionCount();
+  }, [selectedChild]);
+
   if (loading) {
     return (
       <main className="max-w-md mx-auto min-h-svh flex items-center justify-center">
@@ -235,8 +253,7 @@ const JourneyMap = () => {
   const motivationText = getMotivationText(currentSeries, currentStage);
   // 84-day journey: 14 days × 6 phases
   const TOTAL_JOURNEY_DAYS = 84;
-  // TODO: Replace mock with real completed days from DB
-  const totalCompletedDays = 18;
+  const totalCompletedDays = Math.min(completedSessions, TOTAL_JOURNEY_DAYS);
   const progressPercent = Math.round((totalCompletedDays / TOTAL_JOURNEY_DAYS) * 100);
 
   return (
