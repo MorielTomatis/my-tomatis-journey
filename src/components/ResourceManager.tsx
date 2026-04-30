@@ -5,13 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
   AlertDialog,
   AlertDialogContent,
   AlertDialogHeader,
@@ -28,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, Video } from "lucide-react";
+import { Plus, Pencil, Trash2, Video, X } from "lucide-react";
 
 interface Resource {
   id: string;
@@ -170,12 +163,25 @@ const ResourceManager = () => {
         </div>
       )}
 
-      {/* Add/Edit Dialog */}
-      <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent dir="rtl" className="w-[calc(100%-2rem)] max-w-md mx-auto fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col max-h-[85dvh] overflow-hidden p-0">
-          <DialogHeader className="shrink-0 p-6 pb-2 pl-12">
-            <DialogTitle>{editingId ? "עריכת סרטון" : "הוספת סרטון חדש"}</DialogTitle>
-          </DialogHeader>
+      {/* Add/Edit Modal */}
+      {formOpen && (
+        <div className="fixed inset-0 z-50 bg-foreground/60" dir="rtl">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="resource-form-title"
+            className="fixed top-1/2 left-1/2 flex max-h-[85dvh] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl bg-card shadow-lg"
+          >
+          <div className="shrink-0 border-b border-border p-6">
+            <div className="flex items-center justify-between gap-3">
+              <h3 id="resource-form-title" className="text-lg font-bold text-foreground">
+                {editingId ? "עריכת סרטון" : "הוספת סרטון חדש"}
+              </h3>
+              <Button variant="ghost" size="icon" onClick={() => setFormOpen(false)} aria-label="סגירה">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
           <div className="flex-1 overflow-y-auto px-6 py-2 space-y-4">
             <div className="space-y-1">
               <label className="text-sm font-bold text-foreground">כותרת</label>
@@ -199,13 +205,14 @@ const ResourceManager = () => {
               <Input type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: Number(e.target.value) })} />
             </div>
           </div>
-          <DialogFooter className="shrink-0 p-6 pt-4 border-t border-border">
+          <div className="shrink-0 border-t border-border p-6 pt-4">
             <Button onClick={handleSave} disabled={submitting}>
               {submitting ? "שומר..." : editingId ? "עדכן" : "הוסף"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
