@@ -172,11 +172,11 @@ const ResourceManager = () => {
 
       {/* Add/Edit Dialog */}
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent dir="rtl" className="max-w-md">
-          <DialogHeader>
+        <DialogContent dir="rtl" className="max-w-md max-h-[90vh] flex flex-col gap-0 p-0">
+          <DialogHeader className="p-6 pb-2 shrink-0">
             <DialogTitle>{editingId ? "עריכת סרטון" : "הוספת סרטון חדש"}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto px-6 py-2 flex-1 min-h-0">
             <div className="space-y-1">
               <label className="text-sm font-bold text-foreground">כותרת</label>
               <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="כותרת הסרטון" />
@@ -199,7 +199,7 @@ const ResourceManager = () => {
               <Input type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: Number(e.target.value) })} />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="p-6 pt-4 border-t border-border shrink-0">
             <Button onClick={handleSave} disabled={submitting}>
               {submitting ? "שומר..." : editingId ? "עדכן" : "הוסף"}
             </Button>
