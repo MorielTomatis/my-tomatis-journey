@@ -199,7 +199,7 @@ const ResourceManager = () => {
               <Input type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: Number(e.target.value) })} />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="p-6 pt-4 border-t border-border shrink-0">
             <Button onClick={handleSave} disabled={submitting}>
               {submitting ? "שומר..." : editingId ? "עדכן" : "הוסף"}
             </Button>
